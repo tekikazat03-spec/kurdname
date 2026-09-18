@@ -1,0 +1,69 @@
+﻿
+qid           name                              slug                             profession                    places                                    category                
+---           ----                              ----                             ----------                    ------                                    --------                
+KRD-NEHRI-001 Şeyh Ubeydullah Nehrî             seyh-ubeydullah-nehri            Şeyh, siyasi lider            Nehrî, Şemdinli, Hakkâri, Urmiye, Mahabad Nehrî Hareketi          
+KRD-NEHRI-002 Seyyid Abdülkadir Ubeydullah      seyid-abdulkadir-ubeydullah      Siyasi lider, şeyh            Nehrî, Şemdinli, Mahabad, İstanbul        Nehrî Hareketi          
+KRD-NEHRI-003 Seyyid Muhammed Sıddık Ubeydullah seyid-muhammed-siddik-ubeydullah Şeyh, askerî lider            Nehrî, Şemdinli, Urmiye, Salmas, Hoy      Nehrî Hareketi          
+KRD-NEHRI-004 Şeyh Muhammed Said Biradostî      seyh-muhammed-said-biradosti     Şeyh, askerî lider            Biradost, Urmiye, Salmas, Hoy             Nehrî Hareketi          
+KRD-NEHRI-005 Hamza Ağa Mangur                  hamza-aga-mangur                 Aşiret lideri, askerî lider   Mangur, Mahabad, Savucbulak, Mergaver     Nehrî Hareketi          
+KRD-NEHRI-006 Mahmut Ağa                        mahmut-aga-mergaver              Yerel Kürt lideri             Mergaver                                  Nehrî Hareketi          
+KRD-NEHRI-007 Seyyid Taha Hakkârî               seyid-taha-hakkari               Şeyh, Nakşibendî şeyhi        Hakkâri, Nehrî, Şemdinli                  Nehrî Ailesi            
+KRD-NEHRI-008 Şeyh Muhammed Salih               seyh-muhammed-salih-nehri        Şeyh, Nakşibendî şeyhi        Nehrî, Şemdinli, Hakkâri                  Nehrî Ailesi            
+KRD-NEHRI-009 Ali Han                           ali-han-soma                     Yerel Kürt ileri geleni       Soma, Uşnu, Urmiye                        Nehrî Hareketi          
+KRD-NEHRI-010 Mamand Ağa Piran                  mamand-aga-piran                 Aşiret lideri                 Piran, İran Kürdistanı                    Nehrî Hareketi          
+KRD-NEHRI-011 Aziz Ağa Feth                     aziz-aga-feth                    Yerel Kürt ileri geleni       İran Kürdistanı, Savucbulak çevresi       Nehrî Hareketi          
+KRD-NEHRI-012 Mira Ağa                          mira-aga                         Yerel Kürt ileri geleni       İran Kürdistanı, Savucbulak çevresi       Nehrî Hareketi          
+KRD-NEHRI-013 Mustafa Kutto Ağa                 mustafa-kutto-aga                Reşkotan aşireti reisi        Siirt, Reşkotan                           Nehrî Hareketi          
+KRD-NEHRI-014 Hacı Fettah Bey                   haci-fettah-bey-garzanli         Aşiret reisi, bey             Garzan, Siirt                             Nehrî Hareketi          
+KRD-NEHRI-015 Hüseynê Kanco                     huseyne-kanco                    Yerel Kürt ileri geleni       Viranşehir, Mardin                        Nehrî Hareketi          
+KRD-NEHRI-016 İsmail                            ismail-diyarbekir                Yerel ileri gelen             Diyarbekir                                Nehrî Hareketi          
+KRD-NEHRI-017 Şa'bo                             sabo-diyarbekir                  Yerel ileri gelen             Diyarbekir                                Nehrî Hareketi          
+KRD-NEHRI-018 'Anter                            anter-diyarbekir                 Yerel ileri gelen             Diyarbekir                                Nehrî Hareketi          
+KRD-NEHRI-019 İbrahim, Milli Aşireti Reisi      ibrahim-milli                    Aşiret reisi                  Viranşehir, Mardin, Milli                 Nehrî Hareketi          
+KRD-NEHRI-020 Eyub Beyzade Halil                eyub-beyzade-halil               Yerel Kürt ileri geleni       Diyarbekir ve çevresi                     Nehrî Hareketi          
+KRD-NEHRI-021 Dıre'î                            direi                            Yerel Kürt ileri geleni       Diyarbekir ve çevresi                     Nehrî Hareketi          
+KRD-NEHRI-022 Muhammed                          muhammed-diyarbekir              Yerel ileri gelen             Diyarbekir ve çevresi                     Nehrî Hareketi          
+KRD-NEHRI-023 Ali                               ali-diyarbekir                   Yerel ileri gelen             Diyarbekir ve çevresi                     Nehrî Hareketi          
+KRD-NEHRI-013 Hamid Bey                         hamid-bey-garzan                 Bey                           Garzan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-014 Emin Bey                          emin-bey-garzan                  Bey                           Garzan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-015 Seyfeddin Bey                     seyfeddin-bey-garzan             Bey                           Garzan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-016 Ömer Pertev Ağa                   omer-pertev-aga-alikan           Alikan Aşireti ağası          Alikan, Siirt                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-017 Çeto Ağa                          ceto-aga-pencinar                Pencînar Aşireti ağası        Garzan, Pencînar                          Nehrî Dönemi - Sürgünler
+KRD-NEHRI-018 Şîr Beyzade İsmail Bey            ismail-bey-sirbeyzade            Bey                           Şirvan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-019 Said Bey                          said-bey-sirvan                  Yerel bey                     Şirvan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-020 Fettah Bey                        fettah-bey-sirvan                Bey                           Şirvan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-021 Hurşid Bey                        hursid-bey-sirvan                Bey                           Şirvan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-022 Şêr Bey                           ser-bey-usturkan                 Usturkan Aşireti ağası        Şirvan, Usturkan                          Nehrî Dönemi - Sürgünler
+KRD-NEHRI-023 Süleyman Ağa                      suleyman-aga-usturkan            Usturkan Aşireti ağası        Şirvan, Usturkan                          Nehrî Dönemi - Sürgünler
+KRD-NEHRI-024 Muhammed Bey                      muhammed-bey-kefre               Yerel bey                     Kefre, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-025 Halil Bey                         halil-bey-kefre                  Bey                           Kefre, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-026 Muhammed Bey, Kefre               muhammed-bey-kefre-2             Bey                           Kefre, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-027 Derviş Bey                        dervis-bey-kefre                 Bey                           Kefre, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-028 Abo Ağa                           abo-aga-nuvin                    Yerel ileri gelen             Nuvin, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-029 Muradoğlu Ağa                     muradoglu-aga-hizan              Yerel ağa                     Hizan                                     Nehrî Dönemi - Sürgünler
+KRD-NEHRI-030 Çeko oğlu Süleyman                suleyman-ceko-oglu               Yerel ileri gelen             Hizan, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-031 Kasım oğlu Selim                  selim-kasim-oglu                 Yerel ileri gelen             Hizan, Şirvan                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-032 Aziz oğlu Ali Ağa                 ali-aga-aziz-oglu                Yerel ağa                     Hizan                                     Nehrî Dönemi - Sürgünler
+KRD-NEHRI-033 Telli Bey                         telli-bey-irun                   Yerel bey                     İrun, Şirvan                              Nehrî Dönemi - Sürgünler
+KRD-NEHRI-034 Abdi Bey                          abdi-bey-irun                    Yerel bey                     İrun, Şirvan                              Nehrî Dönemi - Sürgünler
+KRD-NEHRI-035 Şerif Bey                         serif-bey-hanedan                Hanedan mensubu               Şirvan                                    Nehrî Dönemi - Sürgünler
+KRD-NEHRI-036 Kerim Bey                         kerim-bey-hob                    Yerel bey                     Hob, Şirvan                               Nehrî Dönemi - Sürgünler
+KRD-NEHRI-037 Muhammed Ali Bey                  muhammed-ali-bey-resid-oglu      Bey                           Şirvan, Garzan                            Nehrî Dönemi - Sürgünler
+KRD-NEHRI-038 Kek Veys Ağa                      kek-veys-aga                     Bekiran Aşireti ağası         Sason, Bekiran                            Nehrî Dönemi - Sürgünler
+KRD-NEHRI-039 Bekiro Ağa                        bekiro-aga-pencinar              Pencînar Aşireti ağası        Pencînar, Sason                           Nehrî Dönemi - Sürgünler
+KRD-NEHRI-040 Zohrab Ağa                        zohrab-aga-alikan                Alikan Aşireti ağası          Alikan, Sason                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-041 Şîro Ağa                          siro-aga-beranli                 Beranlı Aşireti ileri geleni  Sason, Beranlı                            Nehrî Dönemi - Sürgünler
+KRD-NEHRI-042 Lindî Ağa                         lindi-aga-pencinar               Yerel ağa                     Pencînar                                  Nehrî Dönemi - Sürgünler
+KRD-NEHRI-043 Celil bin Halid Ağa               celil-bin-halid-aga              Yerel ileri gelen             Sason çevresi                             Nehrî Dönemi - Sürgünler
+KRD-NEHRI-044 Salih bin Sili Ağa                salih-bin-sili-aga               Reşkotan Aşireti ileri geleni Reşkotan, Siirt                           Nehrî Dönemi - Sürgünler
+KRD-NEHRI-045 Genco Ağa                         genco-aga                        Yerel ağa                     Papo, Sason                               Nehrî Dönemi - Sürgünler
+KRD-NEHRI-046 Mûrî Ağa                          muri-aga                         Yerel ağa                     Milikan, Sason                            Nehrî Dönemi - Sürgünler
+KRD-NEHRI-047 Halef Ağa                         halef-aga                        Yerel ileri gelen             Milikan, Sason                            Nehrî Dönemi - Sürgünler
+KRD-NEHRI-048 Hacı Hamo Ağa                     haci-hamo-aga                    Comanlı Aşireti reisi         Sason, Comanlı                            Nehrî Dönemi - Sürgünler
+KRD-NEHRI-049 Telli Ağa                         telli-aga-khaskhar               Yerel ağa                     Pervari, Khaskhar                         Nehrî Dönemi - Sürgünler
+KRD-NEHRI-050 Timur bin Cihangir Ağa            timur-bin-cihangir-aga           Yerel ileri gelen             Pervari                                   Nehrî Dönemi - Sürgünler
+KRD-NEHRI-051 Cihangir Ağa                      cihangir-aga-ataf                Yerel ağa                     A'taf                                     Nehrî Dönemi - Sürgünler
+KRD-NEHRI-052 Derviş Ağa                        dervis-aga-pervari               Yerel ağa                     Pervari çevresi                           Nehrî Dönemi - Sürgünler
+
+
+

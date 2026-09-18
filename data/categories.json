@@ -1,0 +1,34 @@
+﻿{
+  "categories": [
+    {
+      "id": "isyanlar-hareketler",
+      "title": "İsyanlar ve Hareketler",
+      "description": "Kürdistan tarihindeki isyanlar, ayaklanmalar ve siyasi hareketler."
+    },
+    {
+      "id": "katliamlar-kiyimlar",
+      "title": "Katliamlar ve Kıyımlar",
+      "description": "Toplu şiddet, katliam, sürgün ve kıyım olaylarının arşivi."
+    },
+    {
+      "id": "orgutler-cemiyetler",
+      "title": "Örgütler ve Cemiyetler",
+      "description": "Siyasi, kültürel ve askerî örgütler ile cemiyetler."
+    },
+    {
+      "id": "yazarlar-sairler",
+      "title": "Yazarlar ve Şairler",
+      "description": "Kürt edebiyatının yazarları, şairleri ve yayıncıları."
+    },
+    {
+      "id": "siyasetciler-aydinlar",
+      "title": "Siyasetçiler ve Aydınlar",
+      "description": "Siyasi ve entelektüel yaşamda yer alan kişiler."
+    },
+    {
+      "id": "kisiler",
+      "title": "Kişiler",
+      "description": "KURDNAME kişi arşivi."
+    }
+  ]
+}
