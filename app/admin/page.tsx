@@ -1,145 +1,114 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 const sections = [
   {
     number: "01",
-    title: "Kişiler",
-    description: "Arşivdeki kişi kayıtlarını ekle, düzenle ve yönet.",
+    title: "Şahsiyetler",
+    description: "Tarihî şahsiyetlerin biyografilerini, fotoğraflarını ve kaynaklarını yönet.",
     href: "/admin/kisiler",
   },
   {
     number: "02",
-    title: "İsyanlar ve Hareketler",
-    description: "İsyan ve tarihsel hareket kayıtlarını yönet.",
-    href: "/admin/isyanlar",
-  },
-  {
-    number: "03",
-    title: "Katliamlar ve Kıyımlar",
-    description: "Tarihsel olay ve katliam kayıtlarını yönet.",
-    href: "/admin/katliamlar",
-  },
-  {
-    number: "04",
-    title: "Örgütler ve Cemiyetler",
-    description: "Örgüt, cemiyet ve kuruluş kayıtlarını yönet.",
+    title: "Örgütler",
+    description: "Kürdistan tarihindeki örgütlerin ve cemiyetlerin arşiv kayıtlarını yönet.",
     href: "/admin/orgutler",
   },
   {
-    number: "05",
-    title: "Yazarlar ve Şairler",
-    description: "Yazar ve şair kayıtlarını yönet.",
-    href: "/admin/yazarlar",
-  },
-  {
-    number: "06",
-    title: "Siyasetçiler ve Aydınlar",
-    description: "Siyasetçi ve aydın kayıtlarını yönet.",
-    href: "/admin/siyasetciler",
+    number: "03",
+    title: "Partiler",
+    description: "Siyasi partilerin kuruluşlarını, faaliyetlerini ve tarihsel kayıtlarını yönet.",
+    href: "/admin/partiler",
   },
 ];
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-[#0b0b0b] text-[#e8e3d8]">
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
+    <main className="min-h-screen bg-[#0b100e] text-[#e8e0cb]">
+      <header className="border-b border-[#b99a5b]/20">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7">
           <Link
             href="/"
-            className="text-xs uppercase tracking-[0.25em] text-white/40 transition hover:text-white"
+            className="text-xl font-semibold tracking-[0.25em] text-[#d6b875]"
+          >
+            KURDNAME
+          </Link>
+
+          <Link
+            href="/"
+            className="text-xs uppercase tracking-[0.2em] text-[#b8ad94] transition hover:text-[#e2c582]"
           >
             ← Siteye Dön
           </Link>
-
-          <div className="text-xl font-semibold tracking-[0.2em] text-white">
-            KURDNAME
-          </div>
-
-          <div className="text-[10px] uppercase tracking-[0.25em] text-white/25">
-            Admin
-          </div>
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-6 pb-20 pt-16 lg:px-10">
-        <div className="border-b border-white/10 pb-10">
-          <div className="text-[10px] uppercase tracking-[0.3em] text-[#a99f8b]">
-            YÖNETİM PANELİ
-          </div>
+      <section className="relative overflow-hidden border-b border-[#b99a5b]/20 px-6 py-20 text-center">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(102,91,48,0.14),transparent_65%)]" />
 
-          <h1 className="mt-4 text-5xl font-light text-white sm:text-6xl">
-            Arşiv Yönetimi
+        <div className="relative mx-auto max-w-4xl">
+          <p className="mb-6 text-xs uppercase tracking-[0.4em] text-[#c2a46a]">
+            KURDNAME · ARŞİV YÖNETİMİ
+          </p>
+
+          <h1 className="font-serif text-5xl text-[#f1e6cc] sm:text-6xl">
+            Yönetim Paneli
           </h1>
 
-          <p className="mt-5 max-w-2xl text-sm leading-7 text-white/40">
-            KURDNAME dijital arşivindeki kişi, olay, örgüt ve
-            diğer tarihsel içerikleri buradan yönet.
+          <div className="mx-auto my-8 h-px w-24 bg-[#b99a5b]" />
+
+          <p className="text-base leading-8 text-[#b8b3a6]">
+            Kürdistan'ın dijital hafızasını buradan yönet.
           </p>
         </div>
+      </section>
 
-        <div className="mt-12 grid gap-px bg-white/10 md:grid-cols-2 lg:grid-cols-3">
+      <section className="mx-auto max-w-7xl px-6 py-16">
+        <div className="mb-10 flex items-center justify-between border-b border-[#b99a5b]/20 pb-5">
+          <h2 className="font-serif text-2xl text-[#e8d7b3]">
+            Arşiv Bölümleri
+          </h2>
+
+          <span className="text-xs tracking-[0.2em] text-[#a89b7c]">
+            3 BÖLÜM
+          </span>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
           {sections.map((section) => (
             <Link
-              key={section.number}
+              key={section.href}
               href={section.href}
-              className="group min-h-[240px] bg-[#0b0b0b] p-8 transition hover:bg-white/[0.03]"
+              className="group flex min-h-80 flex-col justify-between border border-[#b99a5b]/20 bg-[#111a15] p-8 transition duration-300 hover:-translate-y-1 hover:border-[#c6a568]/70 hover:bg-[#17231b]"
             >
-              <div className="flex items-start justify-between">
-                <span className="text-[10px] tracking-[0.25em] text-white/20">
+              <div>
+                <span className="font-serif text-4xl text-[#b99a5b]/40">
                   {section.number}
                 </span>
 
-                <span className="text-white/20 transition group-hover:translate-x-1 group-hover:text-white/60">
-                  →
-                </span>
-              </div>
+                <div className="mt-10 h-px w-12 bg-[#b99a5b]" />
 
-              <div className="mt-16">
-                <h2 className="text-2xl font-light text-white">
+                <h3 className="mt-6 font-serif text-3xl text-[#f1e6cc]">
                   {section.title}
-                </h2>
+                </h3>
 
-                <p className="mt-4 max-w-sm text-sm leading-6 text-white/35">
+                <p className="mt-5 text-sm leading-7 text-[#a89f8b]">
                   {section.description}
                 </p>
+              </div>
+
+              <div className="mt-10 flex items-center justify-between border-t border-[#b99a5b]/20 pt-5 text-xs uppercase tracking-[0.15em] text-[#c6a568]">
+                <span>Bölümü Yönet</span>
+                <span className="text-lg transition group-hover:translate-x-1">
+                  →
+                </span>
               </div>
             </Link>
           ))}
         </div>
-
-        <div className="mt-16 border border-white/10 p-8">
-          <div className="text-[10px] uppercase tracking-[0.25em] text-white/25">
-            DURUM
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-light text-white">
-                Arşiv sistemi aktif
-              </h2>
-
-              <p className="mt-2 text-sm text-white/35">
-                İçerikler Firebase Realtime Database üzerinde
-                tutuluyor.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-green-400" />
-
-              <span className="text-xs uppercase tracking-[0.15em] text-white/40">
-                Aktif
-              </span>
-            </div>
-          </div>
-        </div>
       </section>
 
-      <footer className="border-t border-white/10 px-6 py-8">
-        <div className="mx-auto flex max-w-7xl justify-between text-[10px] uppercase tracking-[0.2em] text-white/20">
-          <span>KURDNAME</span>
-          <span>Dijital Arşiv</span>
-        </div>
+      <footer className="border-t border-[#b99a5b]/20 px-6 py-8 text-center text-xs tracking-[0.15em] text-[#8c8575]">
+        KURDNAME · Kürdistan'ın Dijital Arşivi
       </footer>
     </main>
   );

@@ -1,300 +1,230 @@
-"use client";
+﻿"use client";
 
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
 
-import { useLanguage } from "@/components/LanguageProvider";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
-import Sidebar from "@/components/Sidebar";
+const categories = [
+  {
+    number: "01",
+    title: "Şahsiyetler",
+    subtitle: "Tarihe iz bırakan insanlar",
+    description:
+      "Kürdistan tarihindeki şahsiyetlerin yaşamları, eserleri ve faaliyetleri.",
+    href: "/kisiler",
+    symbol: "✦",
+  },
+  {
+    number: "02",
+    title: "Örgütler",
+    subtitle: "Tarihsel oluşumlar",
+    description:
+      "Kürdistan tarihinde faaliyet göstermiş örgütler, cemiyetler ve kuruluşlar.",
+    href: "/orgutler",
+    symbol: "◈",
+  },
+  {
+    number: "03",
+    title: "Partiler",
+    subtitle: "Siyasi tarih",
+    description:
+      "Kürdistan siyasi tarihinde yer alan partiler, kuruluş süreçleri ve faaliyetleri.",
+    href: "/partiler",
+    symbol: "❖",
+  },
+];
+
+function KurdistanSun() {
+  return (
+    <svg
+      viewBox="0 0 200 200"
+      className="h-28 w-28 text-[#c9a66b] sm:h-36 sm:w-36"
+      role="img"
+      aria-label="21 ışınlı güneş"
+    >
+      {Array.from({ length: 21 }, (_, index) => (
+        <line
+          key={index}
+          x1="100"
+          y1="13"
+          x2="100"
+          y2="43"
+          stroke="currentColor"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          transform={`rotate(${(index * 360) / 21} 100 100)`}
+        />
+      ))}
+      <circle cx="100" cy="100" r="43" fill="currentColor" />
+      <circle cx="100" cy="100" r="33" fill="#e0bf80" opacity="0.45" />
+    </svg>
+  );
+}
 
 export default function Home() {
-  const { language } = useLanguage();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const archiveRef = useRef<HTMLElement>(null);
 
-  const texts = {
-    tr: {
-      archive: "Kürdistanın Dijital Arşivi",
-      independent: "Bağımsız Dijital Platform",
-      intro: "Tarih • Hafıza • Arşiv",
-      title1: "Bir hafıza.",
-      title2: "Binlerce iz.",
-      description:
-        "Kürdistan tarihine dair kişi, olay, hareket, örgüt, eser ve belgeleri bir araya getiren dijital arşiv.",
-      searchPlaceholder: "Arşivde ara...",
-      search: "Ara",
-      explore: "Arşivi Keşfet",
-      quote:
-        "Geçmişi kaydetmek, geleceğe bırakılan en sessiz mirastır.",
-      footer: "Kürdistanın dijital arşivi",
-    },
+  function exploreArchive() {
+    setArchiveOpen(true);
 
-    ku: {
-      archive: "Arşîva Dîjîtal a Kurdistanê",
-      independent: "Platforma Dîjîtal a Serbixwe",
-      intro: "Dîrok • Bîranîn • Arşîv",
-      title1: "Bîranînek.",
-      title2: "Hezaran şop.",
-      description:
-        "Arşîveke dîjîtal ku kes, bûyer, tevger, rêxistin, berhem û belgeyên di dîroka Kurdistanê de li hev tîne.",
-      searchPlaceholder: "Di arşîvê de bigere...",
-      search: "Lêgerîn",
-      explore: "Arşîvê keşf bike",
-      quote:
-        "Tomarkirina rabirdûyê, mîrateya herî bêdeng e ku ji bo pêşerojê tê hiştin.",
-      footer: "Arşîva dîjîtal a Kurdistanê",
-    },
-
-    en: {
-      archive: "Kurdistan's Digital Archive",
-      independent: "Independent Digital Platform",
-      intro: "History • Memory • Archive",
-      title1: "One memory.",
-      title2: "Thousands of traces.",
-      description:
-        "A digital archive bringing together people, events, movements, organizations, works and documents related to the history of Kurdistan.",
-      searchPlaceholder: "Search the archive...",
-      search: "Search",
-      explore: "Explore the Archive",
-      quote:
-        "Recording the past is the quietest legacy left for the future.",
-      footer: "Kurdistan's digital archive",
-    },
-  };
-
-  const t = texts[language];
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        archiveRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 150);
+    });
+  }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#10140f] text-[#e8e3d8]">
-
-      {/* TAM SAYFA ARKA PLAN */}
-
-      <div className="fixed inset-0 -z-20">
-        <img
-          src="/kurdname-bg.png"
-          alt=""
-          className="h-full w-full object-cover object-center"
+    <main className="min-h-screen overflow-x-hidden bg-[#0b0d0b] text-[#e8e1d3]">
+      {/* ANA EKRAN */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20 text-center">
+        {/* Tarihî arka plan */}
+        <div
+          className="absolute inset-0 scale-105 bg-cover bg-center opacity-40"
+          style={{
+            backgroundImage: "url('/kurdname-bg.png')",
+          }}
         />
-      </div>
 
-      {/* Koyu katman */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0d0b]/60 via-[#0b0d0b]/75 to-[#0b0d0b]" />
 
-      <div className="fixed inset-0 -z-10 bg-black/45" />
+        {/* Dekoratif çerçeve */}
+        <div className="pointer-events-none absolute inset-5 border border-[#c9a66b]/15 sm:inset-10" />
 
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-black/50 via-transparent to-black/75" />
+        <div className="relative z-10 flex w-full max-w-5xl flex-col items-center">
+          <p className="mb-10 text-[10px] uppercase tracking-[0.55em] text-[#c9a66b] sm:text-xs">
+            DİJİTAL TARİH ARŞİVİ
+          </p>
 
-      {/* SOL MENÜ */}
+          <KurdistanSun />
 
-      <Sidebar
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-      />
+          <div className="my-9 h-px w-24 bg-[#c9a66b]/60" />
 
-      {/* HEADER */}
-
-      <header className="relative z-20 border-b border-white/15 bg-black/20 backdrop-blur-[2px]">
-
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
-
-          <div className="flex items-center gap-5">
-
-            {/* Menü butonu */}
-
-            <button
-              onClick={() => setMenuOpen(true)}
-              aria-label="Menüyü aç"
-              className="flex h-11 w-11 items-center justify-center border border-white/20 bg-black/20 text-white/80 backdrop-blur transition hover:border-white/40 hover:bg-black/40 hover:text-white"
-            >
-              <div className="space-y-1.5">
-                <span className="block h-px w-5 bg-current" />
-                <span className="block h-px w-5 bg-current" />
-                <span className="block h-px w-5 bg-current" />
-              </div>
-            </button>
-
-            {/* YAZI LOGOSU */}
-
-            <Link href="/" className="group">
-              <div className="text-2xl font-semibold tracking-[0.18em] text-white drop-shadow-lg">
-                KURDNAME
-              </div>
-
-              <div className="mt-1 text-[9px] uppercase tracking-[0.28em] text-[#d0c8b5]">
-                {t.archive}
-              </div>
-            </Link>
-
-          </div>
-
-          {/* Dil seçici */}
-
-          <div className="bg-black/20 backdrop-blur">
-            <LanguageSwitcher />
-          </div>
-
-        </div>
-      </header>
-
-      {/* ANA ALAN */}
-
-      <section className="relative z-10 min-h-[calc(100vh-81px)]">
-
-        <div className="mx-auto flex min-h-[calc(100vh-81px)] max-w-7xl items-center px-6 py-24 lg:px-10">
-
-          <div className="max-w-4xl">
-
-            {/* Bağımsız platform */}
-
-            <div className="mb-8 inline-flex items-center gap-3 border border-white/20 bg-black/25 px-4 py-2 backdrop-blur-sm">
-
-              <span className="h-1.5 w-1.5 rounded-full bg-[#d2c6a5]" />
-
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[#e1d8c4]">
-                {t.independent}
-              </span>
-
-            </div>
-
-            {/* Üst başlık */}
-
-            <p className="mb-7 text-xs uppercase tracking-[0.4em] text-[#ddd4c1] drop-shadow-lg">
-              {t.intro}
-            </p>
-
-            {/* Ana başlık */}
-
-            <h1 className="max-w-4xl text-6xl font-light leading-[0.98] tracking-[-0.045em] text-white drop-shadow-2xl sm:text-7xl lg:text-9xl">
-
-              {t.title1}
-
-              <br />
-
-              <span className="text-[#d2c5a5]">
-                {t.title2}
-              </span>
-
-            </h1>
-
-            {/* Açıklama */}
-
-            <p className="mt-9 max-w-2xl text-base leading-8 text-[#e0dace] drop-shadow-lg sm:text-lg">
-              {t.description}
-            </p>
-
-            {/* Arama */}
-
-            <div className="mt-12 max-w-2xl">
-
-              <div className="flex items-center border border-white/25 bg-black/35 backdrop-blur-md transition focus-within:border-white/50">
-
-                <span className="px-5 text-xl text-[#c6bda9]">
-                  ⌕
-                </span>
-
-                <input
-                  type="text"
-                  placeholder={t.searchPlaceholder}
-                  className="h-16 flex-1 bg-transparent px-2 text-sm text-white outline-none placeholder:text-[#c5bdad]"
-                />
-
-                <button className="mr-2 hidden h-12 bg-[#e8e3d8] px-7 text-xs font-medium uppercase tracking-widest text-black transition hover:bg-white sm:block">
-                  {t.search}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* Arşivi keşfet */}
-
-            <Link
-              href="/kisiler"
-              className="mt-8 inline-flex items-center gap-4 border border-white/20 bg-black/25 px-6 py-4 text-xs uppercase tracking-[0.25em] text-white backdrop-blur-sm transition hover:border-white/40 hover:bg-black/40"
-            >
-              {t.explore}
-
-              <span className="text-lg">
-                →
-              </span>
-            </Link>
-
-          </div>
-
-        </div>
-
-        {/* Alt çizgi */}
-
-        <div className="absolute bottom-8 left-0 right-0">
-
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-10">
-
-            <div className="h-px w-20 bg-white/30" />
-
-            <div className="text-[9px] uppercase tracking-[0.4em] text-white/50">
-              KURDNAME
-            </div>
-
-            <div className="h-px w-20 bg-white/30" />
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* FELSEFE BÖLÜMÜ */}
-
-      <section className="relative z-10 border-t border-white/15 bg-black/65 backdrop-blur-sm">
-
-        <div className="mx-auto max-w-7xl px-6 py-28 lg:px-10">
-
-          <div className="grid gap-12 lg:grid-cols-[1fr_2fr]">
-
-            <div>
-
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[#aaa08c]">
-                KURDNAME
-              </p>
-
-              <div className="mt-5 h-px w-16 bg-[#aaa08c]/50" />
-
-              <p className="mt-6 max-w-sm text-sm leading-7 text-[#aaa395]">
-                {t.footer}.
-              </p>
-
-            </div>
-
-            <div>
-
-              <blockquote className="max-w-4xl text-3xl font-light leading-[1.35] tracking-[-0.02em] text-white sm:text-5xl">
-                “{t.quote}”
-              </blockquote>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* FOOTER */}
-
-      <footer className="relative z-10 border-t border-white/10 bg-black/80">
-
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-8 lg:px-10">
-
-          <div className="text-xs tracking-[0.2em] text-white/40">
+          <h1 className="text-5xl font-semibold tracking-[0.13em] sm:text-7xl lg:text-8xl">
             KURDNAME
-          </div>
+          </h1>
 
-          <div className="text-right text-xs text-white/30">
-            {t.footer}
-          </div>
+          <p className="mt-5 text-xs uppercase tracking-[0.32em] text-[#c9a66b] sm:text-sm">
+            Kürdistan'ın Dijital Arşivi
+          </p>
 
+          <p className="mt-12 max-w-2xl font-serif text-xl leading-relaxed text-[#d4cbbd] sm:text-3xl">
+            Bir milletin hafızası, geçmişinde saklıdır.
+          </p>
+
+          <p className="mt-5 max-w-xl text-sm leading-7 text-[#aaa397]">
+            Tarihin izlerini, şahsiyetlerini ve belgelerini gelecek
+            nesillere taşıyan bağımsız dijital arşiv.
+          </p>
+
+          <button
+            type="button"
+            onClick={exploreArchive}
+            className="group mt-12 flex items-center gap-7 border border-[#c9a66b]/70 bg-[#c9a66b]/10 px-9 py-5 text-xs font-medium uppercase tracking-[0.22em] text-[#e0bf80] transition-all duration-300 hover:border-[#c9a66b] hover:bg-[#c9a66b] hover:text-[#0b0d0b]"
+          >
+            ARŞİVİ KEŞFET
+            <span className="text-lg transition-transform group-hover:translate-y-1">
+              ↓
+            </span>
+          </button>
         </div>
 
-      </footer>
+        <div className="absolute bottom-12 text-[10px] uppercase tracking-[0.35em] text-[#aaa397]/60">
+          TARİH · HAFIZA · KİMLİK
+        </div>
+      </section>
 
+      {/* ARŞİV KATEGORİLERİ */}
+      {archiveOpen && (
+        <section
+          ref={archiveRef}
+          id="archive"
+          className="relative mx-auto min-h-screen max-w-7xl scroll-mt-0 px-6 py-24 sm:py-32"
+        >
+          <div className="mb-16 text-center">
+            <p className="text-xs uppercase tracking-[0.45em] text-[#c9a66b]">
+              KURDNAME
+            </p>
+
+            <h2 className="mt-6 font-serif text-4xl sm:text-6xl">
+              Dijital Arşiv
+            </h2>
+
+            <div className="mx-auto my-8 h-px w-20 bg-[#c9a66b]/50" />
+
+            <p className="text-sm text-[#aaa397]">
+              Tarihin kapılarını aralayın.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {categories.map((category) => (
+              <Link
+                key={category.href}
+                href={category.href}
+                className="group relative flex min-h-[420px] flex-col justify-between overflow-hidden border border-[#c9a66b]/20 bg-gradient-to-br from-[#19251d] to-[#0d120e] p-9 transition-all duration-500 hover:-translate-y-2 hover:border-[#c9a66b]/70"
+              >
+                <div className="pointer-events-none absolute -right-10 top-12 font-serif text-[180px] leading-none text-[#c9a66b]/5">
+                  {category.symbol}
+                </div>
+
+                <div className="relative">
+                  <span className="text-xs tracking-[0.3em] text-[#c9a66b]">
+                    {category.number} / ARŞİV
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <div className="mb-7 text-5xl text-[#c9a66b]/70">
+                    {category.symbol}
+                  </div>
+
+                  <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[#c9a66b]/70">
+                    {category.subtitle}
+                  </p>
+
+                  <h3 className="font-serif text-4xl">
+                    {category.title}
+                  </h3>
+
+                  <p className="mt-6 max-w-xs text-sm leading-7 text-[#aaa397]">
+                    {category.description}
+                  </p>
+                </div>
+
+                <div className="relative flex items-center justify-between border-t border-[#c9a66b]/15 pt-6">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#c9a66b]">
+                    ARŞİVİ AÇ
+                  </span>
+
+                  <span className="text-2xl text-[#c9a66b] transition-transform group-hover:translate-x-2">
+                    →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-20 text-center">
+            <p className="text-xs tracking-[0.2em] text-[#aaa397]/50">
+              GEÇMİŞTEN GELECEĞE BİR HAFIZA
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* ALT BİLGİ */}
+      <footer className="border-t border-[#c9a66b]/10 px-6 py-9 text-center">
+        <p className="text-xs tracking-[0.2em] text-[#aaa397]/50">
+          © {new Date().getFullYear()} KURDNAME
+        </p>
+        <p className="mt-3 text-[10px] text-[#aaa397]/40">
+          Kürdistan'ın Dijital Arşivi
+        </p>
+      </footer>
     </main>
   );
 }

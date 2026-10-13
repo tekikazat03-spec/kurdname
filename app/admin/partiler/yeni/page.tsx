@@ -1,14 +1,14 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
-import { ref, onValue, update } from "firebase/database";
+import { useState } from "react";
+import { push, ref, set } from "firebase/database";
 import { database } from "@/lib/firebase";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type Photo = {
   imageUrl: string;
-  caption?: string;
-  source?: string;
+  caption: string;
+  source: string;
 };
 
 type BiographySection = {
@@ -16,30 +16,25 @@ type BiographySection = {
   content: string;
 };
 
-type Massacre = {
-  id: string;
-  slug: string;
-  name: string;
-  date: string;
-  region: string;
-  shortBio: string;
-  people: string[];
-  photos: Photo[];
-  biography: BiographySection[];
-  sources: string[];
-};
+function createSlug(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ı/g, "i")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
-export default function DuzenleKatliamPage() {
-  const params = useParams();
+export default function YeniPartiPage() {
   const router = useRouter();
 
-  const id = params.id as string;
-
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
   const [name, setName] = useState("");
-  const [date, setDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [region, setRegion] = useState("");
   const [shortBio, setShortBio] = useState("");
   const [people, setPeople] = useState("");
@@ -48,53 +43,72 @@ export default function DuzenleKatliamPage() {
   const [biography, setBiography] = useState<BiographySection[]>([]);
   const [sources, setSources] = useState<string[]>([""]);
 
-  useEffect(() => {
-    if (!id) return;
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-    const massacreRef = ref(database, `massacres/${id}`);
+  async function uploadImage(file: File) {
+    const cloudName =
+      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
-    const unsubscribe = onValue(massacreRef, (snapshot) => {
-      const data = snapshot.val();
+    const uploadPreset =
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-      if (!data) {
-        router.push("/admin/katliamlar");
-        return;
+    if (!cloudName || !uploadPreset) {
+      throw new Error(
+        "Cloudinary ayarları bulunamadı."
+      );
+    }
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
       }
+    );
 
-      setName(data.name || "");
-      setDate(data.date || "");
-      setRegion(data.region || "");
-      setShortBio(data.shortBio || "");
-
-      setPeople(
-        Array.isArray(data.people)
-          ? data.people.join(", ")
-          : ""
+    if (!response.ok) {
+      throw new Error(
+        "Fotoğraf yüklenemedi."
       );
+    }
 
-      setPhotos(
-        Array.isArray(data.photos)
-          ? data.photos
-          : []
+    const data = await response.json();
+
+    return data.secure_url as string;
+  }
+
+  async function handlePhotoUpload(
+    index: number,
+    file: File
+  ) {
+    try {
+      setUploading(true);
+
+      const imageUrl = await uploadImage(file);
+
+      setPhotos((current) =>
+        current.map((photo, i) =>
+          i === index
+            ? {
+                ...photo,
+                imageUrl,
+              }
+            : photo
+        )
       );
-
-      setBiography(
-        Array.isArray(data.biography)
-          ? data.biography
-          : []
-      );
-
-      setSources(
-        Array.isArray(data.sources) && data.sources.length > 0
-          ? data.sources
-          : [""]
-      );
-
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [id, router]);
+    } catch (error) {
+      console.error(error);
+      alert("Fotoğraf yüklenirken hata oluştu.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function updatePhoto(
     index: number,
@@ -104,7 +118,10 @@ export default function DuzenleKatliamPage() {
     setPhotos((current) =>
       current.map((photo, i) =>
         i === index
-          ? { ...photo, [field]: value }
+          ? {
+              ...photo,
+              [field]: value,
+            }
           : photo
       )
     );
@@ -118,26 +135,32 @@ export default function DuzenleKatliamPage() {
     setBiography((current) =>
       current.map((section, i) =>
         i === index
-          ? { ...section, [field]: value }
+          ? {
+              ...section,
+              [field]: value,
+            }
           : section
       )
     );
   }
 
-  function updateSource(index: number, value: string) {
-    setSources((current) =>
-      current.map((source, i) =>
-        i === index ? value : source
-      )
-    );
-  }
+  async function handleSave(
+    event: React.FormEvent
+  ) {
+    event.preventDefault();
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+    if (!name.trim()) {
+      alert("Parti adını gir.");
+      return;
+    }
 
     setSaving(true);
 
     try {
+      const newRef = push(
+        ref(database, "parties")
+      );
+
       const cleanPeople = people
         .split(",")
         .map((person) => person.trim())
@@ -147,8 +170,8 @@ export default function DuzenleKatliamPage() {
         .filter((photo) => photo.imageUrl.trim())
         .map((photo) => ({
           imageUrl: photo.imageUrl.trim(),
-          caption: photo.caption?.trim() || "",
-          source: photo.source?.trim() || "",
+          caption: photo.caption.trim(),
+          source: photo.source.trim(),
         }));
 
       const cleanBiography = biography
@@ -166,41 +189,33 @@ export default function DuzenleKatliamPage() {
         .map((source) => source.trim())
         .filter(Boolean);
 
-      const massacreRef = ref(
-        database,
-        `massacres/${id}`
-      );
-
-      await update(massacreRef, {
+      await set(newRef, {
+        id: newRef.key,
+        slug: createSlug(name),
         name: name.trim(),
-        date: date.trim(),
+        startDate: startDate.trim(),
+        endDate: endDate.trim(),
         region: region.trim(),
         shortBio: shortBio.trim(),
         people: cleanPeople,
         photos: cleanPhotos,
         biography: cleanBiography,
         sources: cleanSources,
+        createdAt: Date.now(),
       });
 
-      alert("Katliam kaydı güncellendi.");
+      alert("Parti başarıyla kaydedildi.");
 
-      router.push("/admin/katliamlar");
+      router.push("/admin/partiler");
     } catch (error) {
       console.error(error);
-      alert("Güncelleme sırasında hata oluştu.");
+
+      alert(
+        "Kayıt sırasında bir hata oluştu."
+      );
     } finally {
       setSaving(false);
     }
-  }
-
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#0b0b0b] p-10 text-[#e8e3d8]">
-        <p className="text-white/50">
-          Kayıt yükleniyor...
-        </p>
-      </main>
-    );
   }
 
   return (
@@ -209,18 +224,20 @@ export default function DuzenleKatliamPage() {
 
         <button
           type="button"
-          onClick={() => router.push("/admin/katliamlar")}
+          onClick={() =>
+            router.push("/admin/partiler")
+          }
           className="mb-6 text-sm text-white/40 hover:text-white"
         >
-          ← Katliamlar
+          ← Partiler
         </button>
 
         <h1 className="text-4xl font-semibold">
-          Katliamı Düzenle
+          Yeni Parti Ekle
         </h1>
 
         <p className="mt-3 text-sm text-white/40">
-          Mevcut arşiv kaydını düzenle.
+          Arşive yeni bir siyasi parti kaydı ekle.
         </p>
 
         <form
@@ -230,35 +247,57 @@ export default function DuzenleKatliamPage() {
 
           {/* TEMEL BİLGİLER */}
           <section className="space-y-5 rounded-xl border border-white/10 bg-white/[0.03] p-6">
+
             <h2 className="text-xl font-medium">
               Temel Bilgiler
             </h2>
 
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Katliam adı"
-              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
+              onChange={(e) =>
+                setName(e.target.value)
+              }
+              placeholder="Parti adı"
               required
+              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
             />
 
-            <input
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              placeholder="Tarih"
-              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
-            />
+            <div className="grid gap-4 md:grid-cols-2">
+
+              <input
+                value={startDate}
+                onChange={(e) =>
+                  setStartDate(e.target.value)
+                }
+                placeholder="Kuruluş tarihi"
+                className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
+              />
+
+              <input
+                value={endDate}
+                onChange={(e) =>
+                  setEndDate(e.target.value)
+                }
+                placeholder="Kapanış / sona eriş tarihi"
+                className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
+              />
+
+            </div>
 
             <input
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              placeholder="Bölge"
+              onChange={(e) =>
+                setRegion(e.target.value)
+              }
+              placeholder="Merkez / faaliyet bölgesi"
               className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
             />
 
             <textarea
               value={shortBio}
-              onChange={(e) => setShortBio(e.target.value)}
+              onChange={(e) =>
+                setShortBio(e.target.value)
+              }
               placeholder="Kısa açıklama"
               rows={6}
               className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
@@ -266,14 +305,22 @@ export default function DuzenleKatliamPage() {
 
             <input
               value={people}
-              onChange={(e) => setPeople(e.target.value)}
-              placeholder="Kişiler: Seyit Rıza, Alişer, ..."
+              onChange={(e) =>
+                setPeople(e.target.value)
+              }
+              placeholder="Önemli kişiler: Seyid Abdülkadir, ... "
               className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
             />
+
+            <p className="text-xs text-white/30">
+              Birden fazla kişiyi virgülle ayır.
+            </p>
+
           </section>
 
           {/* FOTOĞRAFLAR */}
           <section className="space-y-5 rounded-xl border border-white/10 bg-white/[0.03] p-6">
+
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-medium">
                 Fotoğraflar
@@ -300,9 +347,10 @@ export default function DuzenleKatliamPage() {
             {photos.map((photo, index) => (
               <div
                 key={index}
-                className="space-y-3 rounded-lg border border-white/10 p-4"
+                className="space-y-4 rounded-lg border border-white/10 p-4"
               >
-                <div className="flex justify-between">
+
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-white/40">
                     Fotoğraf {index + 1}
                   </span>
@@ -323,20 +371,33 @@ export default function DuzenleKatliamPage() {
                 </div>
 
                 <input
-                  value={photo.imageUrl}
-                  onChange={(e) =>
-                    updatePhoto(
-                      index,
-                      "imageUrl",
-                      e.target.value
-                    )
-                  }
-                  placeholder="Cloudinary fotoğraf URL'si"
-                  className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const file =
+                      e.target.files?.[0];
+
+                    if (file) {
+                      handlePhotoUpload(
+                        index,
+                        file
+                      );
+                    }
+                  }}
+                  className="block w-full text-sm text-white/50"
                 />
 
+                {photo.imageUrl && (
+                  <img
+                    src={photo.imageUrl}
+                    alt=""
+                    className="max-h-64 rounded-lg object-contain"
+                  />
+                )}
+
                 <input
-                  value={photo.caption || ""}
+                  value={photo.caption}
                   onChange={(e) =>
                     updatePhoto(
                       index,
@@ -349,7 +410,7 @@ export default function DuzenleKatliamPage() {
                 />
 
                 <input
-                  value={photo.source || ""}
+                  value={photo.source}
                   onChange={(e) =>
                     updatePhoto(
                       index,
@@ -360,13 +421,17 @@ export default function DuzenleKatliamPage() {
                   placeholder="Fotoğraf kaynağı"
                   className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
                 />
+
               </div>
             ))}
+
           </section>
 
           {/* TARİHÇE */}
           <section className="space-y-5 rounded-xl border border-white/10 bg-white/[0.03] p-6">
+
             <div className="flex items-center justify-between">
+
               <h2 className="text-xl font-medium">
                 Tarihçe
               </h2>
@@ -386,13 +451,15 @@ export default function DuzenleKatliamPage() {
               >
                 + Bölüm
               </button>
+
             </div>
 
             {biography.map((section, index) => (
               <div
                 key={index}
-                className="space-y-3 rounded-lg border border-white/10 p-4"
+                className="space-y-4 rounded-lg border border-white/10 p-4"
               >
+
                 <div className="flex justify-between">
                   <span className="text-sm text-white/40">
                     Bölüm {index + 1}
@@ -439,13 +506,17 @@ export default function DuzenleKatliamPage() {
                   rows={8}
                   className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none"
                 />
+
               </div>
             ))}
+
           </section>
 
           {/* KAYNAKLAR */}
           <section className="space-y-5 rounded-xl border border-white/10 bg-white/[0.03] p-6">
+
             <div className="flex items-center justify-between">
+
               <h2 className="text-xl font-medium">
                 Kaynaklar
               </h2>
@@ -453,12 +524,16 @@ export default function DuzenleKatliamPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setSources([...sources, ""])
+                  setSources([
+                    ...sources,
+                    "",
+                  ])
                 }
                 className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:bg-white/10"
               >
                 + Kaynak
               </button>
+
             </div>
 
             {sources.map((source, index) => (
@@ -466,12 +541,17 @@ export default function DuzenleKatliamPage() {
                 key={index}
                 className="flex gap-2"
               >
+
                 <input
                   value={source}
                   onChange={(e) =>
-                    updateSource(
-                      index,
-                      e.target.value
+                    setSources(
+                      sources.map(
+                        (item, i) =>
+                          i === index
+                            ? e.target.value
+                            : item
+                      )
                     )
                   }
                   placeholder={`Kaynak ${index + 1}`}
@@ -491,22 +571,25 @@ export default function DuzenleKatliamPage() {
                 >
                   ×
                 </button>
+
               </div>
             ))}
+
           </section>
 
           {/* KAYDET */}
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || uploading}
             className="w-full rounded-lg bg-white px-5 py-4 font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
           >
             {saving
               ? "Kaydediliyor..."
-              : "Değişiklikleri Kaydet"}
+              : "Partiyi Kaydet"}
           </button>
 
         </form>
+
       </div>
     </main>
   );
