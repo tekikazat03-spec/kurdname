@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+import Link from "next/link";
+import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import { notFound } from "next/navigation";
 import {
   asList,
@@ -138,6 +139,7 @@ export default async function PartyDetailPage({
           </section>
         )}
       </article>
+      <ArchiveMediaGallery collection="parties" />
     </main>
   );
 }

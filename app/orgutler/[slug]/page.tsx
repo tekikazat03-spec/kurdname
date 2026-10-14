@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import { onValue, ref } from "firebase/database";
 import { useParams } from "next/navigation";
 import { database } from "@/lib/firebase";
@@ -243,6 +244,7 @@ export default function OrgutDetayPage() {
           )}
 
       </div>
+      <ArchiveMediaGallery collection="organizations" />
     </main>
   );
 }

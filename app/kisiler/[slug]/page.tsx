@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import RelatedArchiveRecords from "@/components/RelatedArchiveRecords";
 
 type BiographySection = {
@@ -239,6 +240,7 @@ export default async function PersonPage({
           </Link>
         </div>
       </footer>
+      <ArchiveMediaGallery collection="people" />
     </main>
   );
 }

@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 const sections = [
   {
@@ -107,6 +107,19 @@ export default function AdminPage() {
         </div>
       </section>
 
+      <div className="mx-auto max-w-7xl px-6 pb-16">
+        <Link
+          href="/admin/galeri"
+          className="block border border-[#b99a5b]/30 bg-[#111a15] p-7 text-center transition hover:border-[#d6b875]"
+        >
+          <span className="font-serif text-2xl text-[#f1e6cc]">
+            Tarihî Belge ve Fotoğraf Yönetimi
+          </span>
+          <span className="mt-3 block text-sm text-[#c9a66b]">
+            Galerileri Yönet →
+          </span>
+        </Link>
+      </div>
       <footer className="border-t border-[#b99a5b]/20 px-6 py-8 text-center text-xs tracking-[0.15em] text-[#8c8575]">
         KURDNAME · Kürdistan'ın Dijital Arşivi
       </footer>
