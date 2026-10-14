@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RelatedArchiveRecords from "@/components/RelatedArchiveRecords";
 
 type BiographySection = {
   title?: string;
@@ -194,6 +195,8 @@ export default async function PersonPage({
           </p>
         )}
       </section>
+
+      <RelatedArchiveRecords personName={person.name} />
 
       {/* KAYNAKLAR */}
       {person.sources && person.sources.length > 0 && (
