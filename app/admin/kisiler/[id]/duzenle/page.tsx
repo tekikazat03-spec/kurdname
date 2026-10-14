@@ -37,7 +37,6 @@ export default function EditPersonPage() {
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [death, setDeath] = useState("");
-  const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [shortBio, setShortBio] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -67,7 +66,6 @@ export default function EditPersonPage() {
         setName(data.name || "");
         setBirth(data.birth || "");
         setDeath(data.death || "");
-        setCategory(data.category || "");
         setTags(Array.isArray(data.tags) ? data.tags.join(", ") : "");
         setShortBio(data.shortBio || "");
         setImageUrl(data.imageUrl || "");
@@ -157,7 +155,6 @@ export default function EditPersonPage() {
         slug: createSlug(name),
         birth: birth.trim(),
         death: death.trim(),
-        category: category.trim(),
         tags: cleanTags,
         shortBio: shortBio.trim(),
         biography: cleanBiography,
@@ -243,12 +240,6 @@ export default function EditPersonPage() {
                 label="Ölüm"
                 value={death}
                 onChange={setDeath}
-              />
-
-              <Field
-                label="Kategori"
-                value={category}
-                onChange={setCategory}
               />
             </div>
 

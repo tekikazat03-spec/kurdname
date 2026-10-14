@@ -17,7 +17,6 @@ export default function NewPersonPage() {
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [death, setDeath] = useState("");
-  const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [shortBio, setShortBio] = useState("");
 
@@ -129,11 +128,6 @@ export default function NewPersonPage() {
       return;
     }
 
-    if (!category.trim()) {
-      alert("Lütfen kategori seç.");
-      return;
-    }
-
     if (!image) {
       alert("Lütfen kişinin fotoğrafını seç.");
       return;
@@ -157,7 +151,7 @@ export default function NewPersonPage() {
         birth: birth.trim(),
         death: death.trim(),
 
-        category: category.trim(),
+        category: "Şahsiyetler",
 
         tags: tags
           .split(",")
@@ -195,7 +189,6 @@ export default function NewPersonPage() {
       setName("");
       setBirth("");
       setDeath("");
-      setCategory("");
       setTags("");
       setShortBio("");
       setSources("");
@@ -316,37 +309,6 @@ export default function NewPersonPage() {
                   placeholder="Mehmed Şerîf Paşa"
                   className="h-14 w-full border border-white/10 bg-black/30 px-4 text-white outline-none focus:border-white/30"
                 />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-white/45">
-                  Kategori
-                </label>
-
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="h-14 w-full border border-white/10 bg-[#111] px-4 text-white outline-none focus:border-white/30"
-                >
-                  <option value="">
-                    Kategori seç
-                  </option>
-                  <option value="Siyasetçiler ve Aydınlar">
-                    Siyasetçiler ve Aydınlar
-                  </option>
-                  <option value="Yazarlar ve Şairler">
-                    Yazarlar ve Şairler
-                  </option>
-                  <option value="İsyanlar ve Hareketler">
-                    İsyanlar ve Hareketler
-                  </option>
-                  <option value="Örgütler ve Cemiyetler">
-                    Örgütler ve Cemiyetler
-                  </option>
-                  <option value="Kişiler">
-                    Kişiler
-                  </option>
-                </select>
               </div>
 
               <div>
