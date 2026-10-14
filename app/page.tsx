@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import ArchiveSearch from "@/components/ArchiveSearch";
 
 const categories = [
   {
@@ -119,6 +120,8 @@ export default function Home() {
             Tarihin izlerini, şahsiyetlerini ve belgelerini gelecek
             nesillere taşıyan bağımsız dijital arşiv.
           </p>
+
+          <ArchiveSearch />
 
           <button
             type="button"
