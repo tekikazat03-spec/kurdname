@@ -1,9 +1,10 @@
-﻿export type ArchiveItem = {
+export type ArchiveItem = {
   id: string;
   title: string;
   category: string;
   href: string;
   description: string;
+  year: number | null;
   searchable: string;
 };
 
@@ -66,9 +67,19 @@ export async function getArchiveItems(): Promise<ArchiveItem[]> {
 
         const description = toText(record.shortBio).trim();
 
+        const dateValue = toText(
+          collection.key === "people"
+            ? record.birth
+            : record.startDate
+        );
+
+        const yearMatch = dateValue.match(/\b\d{4}\b/);
+        const year = yearMatch ? Number(yearMatch[0]) : null;
+
         const searchable = [
           title,
           description,
+          year,
           toText(record.tags),
           toText(record.people),
           toText(record.region),
@@ -86,6 +97,7 @@ export async function getArchiveItems(): Promise<ArchiveItem[]> {
           category: collection.category,
           href: `/${collection.route}/${slug}`,
           description,
+          year,
           searchable,
         }];
       });

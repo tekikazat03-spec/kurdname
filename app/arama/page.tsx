@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import {
   getArchiveItems,
   searchArchive,
@@ -15,10 +15,13 @@ export const metadata = {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[]; baslangic?: string; bitis?: string }>;
 }) {
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim() : "";
+
+  const start = Number(params.baslangic) || 0;
+  const end = Number(params.bitis) || 0;
 
   let results: ArchiveItem[] = [];
   let error = false;
@@ -26,7 +29,12 @@ export default async function SearchPage({
   if (query) {
     try {
       const items = await getArchiveItems();
-      results = searchArchive(items, query);
+      results = searchArchive(items, query).filter((item) => {
+        if (!start && !end) return true;
+        if (item.year === null) return false;
+        return (!start || item.year >= start) &&
+               (!end || item.year <= end);
+      });
     } catch {
       error = true;
     }
@@ -58,7 +66,7 @@ export default async function SearchPage({
           Arşivde Ara
         </h1>
 
-        <form action="/arama" method="get" className="mt-10 flex border border-[#b99a5b]/50">
+        <form action="/arama" method="get" className="mt-10 flex flex-wrap gap-3">
           <input
             name="q"
             type="search"
@@ -66,6 +74,28 @@ export default async function SearchPage({
             defaultValue={query}
             placeholder="Aramak istediğin kelime..."
             className="min-w-0 flex-1 bg-[#111a15] px-5 py-4 text-[#f1e6cc] outline-none"
+          />
+
+          <input
+            name="baslangic"
+            type="number"
+            min="1000"
+            max="2100"
+            placeholder="İlk yıl"
+            aria-label="Başlangıç yılı"
+            defaultValue={params.baslangic || ""}
+            className="w-28 border border-[#b99a5b]/50 bg-[#111a15] px-3 py-4 text-[#f1e6cc]"
+          />
+
+          <input
+            name="bitis"
+            type="number"
+            min="1000"
+            max="2100"
+            placeholder="Son yıl"
+            aria-label="Bitiş yılı"
+            defaultValue={params.bitis || ""}
+            className="w-28 border border-[#b99a5b]/50 bg-[#111a15] px-3 py-4 text-[#f1e6cc]"
           />
 
           <button
