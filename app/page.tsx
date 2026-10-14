@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LatestArchiveRecords from "@/components/LatestArchiveRecords";
 import ArchiveSearch from "@/components/ArchiveSearch";
@@ -66,7 +66,60 @@ export default function Home() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const archiveRef = useRef<HTMLElement>(null);
 
+  const restorePosition = useRef<number | null>(null);
+
+  useEffect(() => {
+    const savedOpen =
+      sessionStorage.getItem("kurdname-archive-open") === "1";
+
+    if (savedOpen) {
+      const savedY = Number(
+        sessionStorage.getItem("kurdname-home-scroll") || "0"
+      );
+
+      restorePosition.current = Number.isFinite(savedY)
+        ? savedY
+        : 0;
+
+      setArchiveOpen(true);
+    }
+
+    function rememberScroll() {
+      sessionStorage.setItem(
+        "kurdname-home-scroll",
+        String(window.scrollY)
+      );
+    }
+
+    window.addEventListener("scroll", rememberScroll, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener("scroll", rememberScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!archiveOpen || restorePosition.current === null) return;
+
+    const position = restorePosition.current;
+    restorePosition.current = null;
+
+    const timer = window.setTimeout(() => {
+      window.scrollTo({
+        top: position,
+        behavior: "instant",
+      });
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [archiveOpen]);
+
+  // kurdname-restore-scroll
+
   function exploreArchive() {
+    sessionStorage.setItem("kurdname-archive-open", "1");
     setArchiveOpen(true);
 
     requestAnimationFrame(() => {
