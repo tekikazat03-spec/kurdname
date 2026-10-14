@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import LatestArchiveRecords from "@/components/LatestArchiveRecords";
 import ArchiveSearch from "@/components/ArchiveSearch";
 
 const categories = [
@@ -218,6 +219,8 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <LatestArchiveRecords />
 
       {/* ALT BİLGİ */}
       <footer className="border-t border-[#c9a66b]/10 px-6 py-9 text-center">
