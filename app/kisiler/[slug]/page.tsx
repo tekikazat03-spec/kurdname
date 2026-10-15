@@ -1,3 +1,37 @@
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const person = await getPerson(slug);
+
+  if (!person) {
+    return {
+      title: "Kişi bulunamadı",
+      robots: { index: false },
+    };
+  }
+
+  const description =
+    person.shortBio?.trim() ||
+    `${person.name} hakkında biyografi, yaşamı ve eserleri. KURDNAME dijital arşivi.`;
+
+  return {
+    title: person.name,
+    description: description.slice(0, 160),
+    alternates: {
+      canonical: `/kisiler/${encodeURIComponent(person.slug)}`,
+    },
+    openGraph: {
+      title: `${person.name} | KURDNAME`,
+      description: description.slice(0, 160),
+      type: "article",
+    },
+  };
+}
 import Link from "next/link";
 import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import RelatedArchiveRecords from "@/components/RelatedArchiveRecords";
@@ -48,7 +82,7 @@ async function getPerson(slug: string): Promise<Person | null> {
 
     return person || null;
   } catch (error) {
-    console.error("Kişi alınamadı:", error);
+    console.error("KiÅŸi alÄ±namadÄ±:", error);
     return null;
   }
 }
@@ -69,14 +103,14 @@ export default async function PersonPage({
           <div className="text-7xl font-light text-white/20">404</div>
 
           <h1 className="mt-6 text-2xl font-light text-white">
-            Kişi bulunamadı
+            KiÅŸi bulunamadÄ±
           </h1>
 
           <Link
             href="/kisiler"
             className="mt-10 border border-white/20 px-6 py-3 text-xs uppercase tracking-[0.25em] text-white/70 transition hover:border-white/40 hover:text-white"
           >
-            ← Kişilere Dön
+            â† KiÅŸilere DÃ¶n
           </Link>
         </div>
       </main>
@@ -92,7 +126,7 @@ export default async function PersonPage({
             href="/kisiler"
             className="text-xs uppercase tracking-[0.25em] text-white/50 transition hover:text-white"
           >
-            ← Kişiler
+            â† KiÅŸiler
           </Link>
 
           <Link
@@ -107,7 +141,7 @@ export default async function PersonPage({
       {/* HERO */}
       <section className="border-b border-white/10">
         <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[420px_1fr] lg:px-10 lg:py-24">
-          {/* FOTOĞRAF */}
+          {/* FOTOÄRAF */}
           <div>
             {person.imageUrl ? (
               <img
@@ -117,15 +151,15 @@ export default async function PersonPage({
               />
             ) : (
               <div className="flex aspect-[3/4] items-center justify-center border border-white/10 bg-white/[0.03] text-sm text-white/30">
-                Fotoğraf yok
+                FotoÄŸraf yok
               </div>
             )}
           </div>
 
-          {/* BİLGİLER */}
+          {/* BÄ°LGÄ°LER */}
           <div className="flex flex-col justify-center">
             <div className="text-[10px] uppercase tracking-[0.3em] text-[#a99f8b]">
-              {person.category || "Kişi"}
+              {person.category || "KiÅŸi"}
             </div>
 
             <h1 className="mt-5 text-5xl font-light leading-tight tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
@@ -134,7 +168,7 @@ export default async function PersonPage({
 
             {(person.birth || person.death) && (
               <div className="mt-6 text-lg tracking-[0.08em] text-[#bdb4a3]">
-                {person.birth || "—"} — {person.death || "—"}
+                {person.birth || "â€”"} â€” {person.death || "â€”"}
               </div>
             )}
 
@@ -160,11 +194,11 @@ export default async function PersonPage({
         </div>
       </section>
 
-      {/* BİYOGRAFİ */}
+      {/* BÄ°YOGRAFÄ° */}
       <section className="mx-auto max-w-5xl px-6 py-20 lg:px-10 lg:py-28">
         <div className="mb-14">
           <div className="text-[10px] uppercase tracking-[0.3em] text-[#a99f8b]">
-            KURDNAME ARŞİVİ
+            KURDNAME ARÅÄ°VÄ°
           </div>
 
           <h2 className="mt-4 text-3xl font-light text-white sm:text-4xl">
@@ -192,7 +226,7 @@ export default async function PersonPage({
           </div>
         ) : (
           <p className="text-white/40">
-            Bu kişi için henüz biyografi eklenmemiş.
+            Bu kiÅŸi iÃ§in henÃ¼z biyografi eklenmemiÅŸ.
           </p>
         )}
       </section>
@@ -236,7 +270,7 @@ export default async function PersonPage({
             href="/kisiler"
             className="text-xs uppercase tracking-[0.2em] text-white/40 transition hover:text-white"
           >
-            Kişilere Dön
+            KiÅŸilere DÃ¶n
           </Link>
         </div>
       </footer>
