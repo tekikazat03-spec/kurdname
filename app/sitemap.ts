@@ -2,49 +2,67 @@
 
 export const dynamic = "force-dynamic";
 
-type Person = {
+const baseUrl = "https://www.kurdnamehistory.com";
+const firebaseUrl =
+  "https://kurdname-7ba60-default-rtdb.firebaseio.com";
+
+type RecordItem = {
   slug?: string;
 };
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://www.kurdnamehistory.com";
-
-  const pages: MetadataRoute.Sitemap = [
-    { url: baseUrl, changeFrequency: "weekly", priority: 1 },
-    { url: `${baseUrl}/kisiler`, changeFrequency: "daily", priority: 0.9 },
-  ];
-
+async function getRecordUrls(
+  collection: string,
+  route: string
+): Promise<MetadataRoute.Sitemap> {
   try {
     const response = await fetch(
-      "https://kurdname-7ba60-default-rtdb.firebaseio.com/people.json",
+      `${firebaseUrl}/${collection}.json`,
       { cache: "no-store" }
     );
 
-    if (!response.ok) return pages;
+    if (!response.ok) return [];
 
     const data = await response.json();
-    if (!data || typeof data !== "object") return pages;
 
-    const people = Object.values(data) as Person[];
+    if (!data || typeof data !== "object") return [];
 
-    const seen = new Set<string>();
+    const records = Object.values(data) as RecordItem[];
 
-    for (const person of people) {
-      if (typeof person.slug !== "string" || !person.slug.trim()) continue;
+    const slugs = new Set<string>();
 
-      const slug = person.slug.trim();
-      if (seen.has(slug)) continue;
-      seen.add(slug);
-
-      pages.push({
-        url: `${baseUrl}/kisiler/${encodeURIComponent(slug)}`,
-        changeFrequency: "monthly",
-        priority: 0.7,
-      });
+    for (const record of records) {
+      if (
+        typeof record?.slug === "string" &&
+        record.slug.trim()
+      ) {
+        slugs.add(record.slug.trim());
+      }
     }
-  } catch (error) {
-    console.error("Sitemap oluşturulamadı:", error);
-  }
 
-  return pages;
+    return [...slugs].map((slug) => ({
+      url: `${baseUrl}/${route}/${encodeURIComponent(slug)}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error(`${collection} sitemap hatası:`, error);
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const pages: MetadataRoute.Sitemap = [
+    { url: baseUrl, priority: 1 },
+    { url: `${baseUrl}/kisiler`, priority: 0.9 },
+    { url: `${baseUrl}/partiler`, priority: 0.9 },
+    { url: `${baseUrl}/orgutler`, priority: 0.9 },
+  ];
+
+  const [people, parties, organizations] = await Promise.all([
+    getRecordUrls("people", "kisiler"),
+    getRecordUrls("parties", "partiler"),
+    getRecordUrls("organizations", "orgutler"),
+  ]);
+
+  return [...pages, ...people, ...parties, ...organizations];
 }
