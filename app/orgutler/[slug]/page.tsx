@@ -1,10 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import type { Metadata } from "next";
 import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
-import { onValue, ref } from "firebase/database";
-import { useParams } from "next/navigation";
-import { database } from "@/lib/firebase";
 
 type Organization = {
   id: string;
@@ -27,58 +22,32 @@ type Organization = {
   sources?: string[];
 };
 
-export default function OrgutDetayPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-
-  const [organization, setOrganization] =
-    useState<Organization | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const organizationsRef = ref(
-      database,
-      "organizations"
-    );
-
-    const unsubscribe = onValue(
-      organizationsRef,
-      (snapshot) => {
-        const data = snapshot.val();
-
-        if (!data) {
-          setOrganization(null);
-          setLoading(false);
-          return;
-        }
-
-        const found = Object.entries(data)
-          .map(([id, value]: [string, any]) => ({
-            id,
-            ...value,
-          }))
-          .find(
-            (item: Organization) =>
-              item.slug === slug
-          );
-
-        setOrganization(found || null);
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#0b0b0b] p-10 text-[#e8e3d8]">
-        <p className="text-white/40">
-          Yükleniyor...
-        </p>
-      </main>
-    );
+async function getOrganization(slug: string): Promise<Organization | null> {
+  try {
+    const response = await fetch("https://kurdname-7ba60-default-rtdb.firebaseio.com/organizations.json", { cache: "no-store" });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data || typeof data !== "object") return null;
+    const entry = Object.entries(data).find(([, value]) => (value as Organization)?.slug === slug);
+    return entry ? { ...(entry[1] as Organization), id: entry[0] } : null;
+  } catch (error) {
+    console.error("Örgüt alınamadı:", error);
+    return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const organization = await getOrganization(decodeURIComponent(slug));
+  if (!organization) return { title: "Örgüt bulunamadı", robots: { index: false } };
+  const description = (organization.shortBio?.trim() || `${organization.name} kuruluşu, tarihçesi, faaliyetleri ve kaynakları. KURDNAME dijital arşivi.`).slice(0, 160);
+  const url = `/orgutler/${encodeURIComponent(organization.slug)}`;
+  return { title: organization.name, description, alternates: { canonical: url }, openGraph: { title: `${organization.name} | KURDNAME`, description, url, type: "article" } };
+}
+
+export default async function OrgutDetayPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const organization = await getOrganization(decodeURIComponent(slug));
 
   if (!organization) {
     return (

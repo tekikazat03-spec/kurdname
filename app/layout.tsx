@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   description:
     "KURDNAME, Kürdistan tarihi, Kürt şahsiyetleri, edebiyatı, tarihî olaylar, örgütler ve belgeler üzerine kaynaklı biyografiler ve arşiv kayıtları sunan bağımsız dijital tarih arşividir.",
   applicationName: "KURDNAME",
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "tr_TR",

@@ -1,6 +1,23 @@
-﻿import Link from "next/link";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-export default function OrgutlerPage() {
+type OrganizationItem = { id: string; slug: string; name: string; shortBio?: string; startDate?: string };
+
+async function getOrganizations(): Promise<OrganizationItem[]> {
+  try {
+    const response = await fetch("https://kurdname-7ba60-default-rtdb.firebaseio.com/organizations.json", { cache: "no-store" });
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (!data || typeof data !== "object") return [];
+    return Object.entries(data).map(([id, value]) => ({ ...(value as Omit<OrganizationItem, "id">), id }));
+  } catch (error) {
+    console.error("Örgütler alınamadı:", error);
+    return [];
+  }
+}
+
+export default async function OrgutlerPage() {
+  const organizations = await getOrganizations();
   return (
     <main className="min-h-screen bg-[#0b100e] text-[#e8e0cb]">
       <header className="border-b border-[#b99a5b]/20">
@@ -49,10 +66,22 @@ export default function OrgutlerPage() {
           </h2>
 
           <span className="text-xs tracking-[0.2em] text-[#a89b7c]">
-            0 KAYIT
+            {organizations.length} KAYIT
           </span>
         </div>
 
+        {organizations.length > 0 ? (
+          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+            {organizations.map((organization) => (
+              <Link key={organization.id} href={`/orgutler/${organization.slug}`} className="group border border-[#b99a5b]/20 bg-[#111a15] p-7 transition hover:border-[#c6a568]/70">
+                <h3 className="font-serif text-2xl text-[#f1e6cc]">{organization.name}</h3>
+                {organization.startDate && <p className="mt-3 text-sm text-[#a89f8b]">{organization.startDate}</p>}
+                {organization.shortBio && <p className="mt-5 line-clamp-3 text-sm leading-7 text-[#b8b3a6]">{organization.shortBio}</p>}
+                <p className="mt-7 border-t border-[#b99a5b]/20 pt-5 text-xs text-[#c6a568]">KAYDI İNCELE →</p>
+              </Link>
+            ))}
+          </div>
+        ) : (
         <div className="flex min-h-80 flex-col items-center justify-center border border-[#b99a5b]/20 bg-[#111a15] px-6 text-center">
           <div className="mb-6 text-4xl text-[#b99a5b]">✦</div>
 
@@ -65,6 +94,7 @@ export default function OrgutlerPage() {
             Yeni kayıtlar eklendikçe burada görüntülenecek.
           </p>
         </div>
+        )}
       </section>
 
       <footer className="border-t border-[#b99a5b]/20 px-6 py-8 text-center text-xs tracking-[0.15em] text-[#8c8575]">
@@ -73,3 +103,10 @@ export default function OrgutlerPage() {
     </main>
   );
 }
+
+export const metadata: Metadata = {
+  title: "Örgütler ve Cemiyetler",
+  description: "Kürdistan tarihindeki siyasi, kültürel ve askerî örgütlerin kuruluşları, faaliyetleri ve tarihsel mirasları.",
+  alternates: { canonical: "/orgutler" },
+  openGraph: { title: "Örgütler ve Cemiyetler | KURDNAME", description: "Kürdistan tarihindeki siyasi, kültürel ve askerî örgütlerin kuruluşları, faaliyetleri ve tarihsel mirasları.", url: "/orgutler" },
+};

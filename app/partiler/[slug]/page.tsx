@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const party = (await getParties()).find((item) => item.slug === decodeURIComponent(slug));
+  if (!party) return { title: "Parti bulunamadı", robots: { index: false } };
+  const description = (party.shortBio?.trim() || `${party.name} hakkında kuruluş, tarihçe, faaliyetler ve kaynaklar. KURDNAME dijital arşivi.`).slice(0, 160);
+  const url = `/partiler/${encodeURIComponent(party.slug)}`;
+  return { title: party.name, description, alternates: { canonical: url }, openGraph: { title: `${party.name} | KURDNAME`, description, url, type: "article" } };
+}
 import Link from "next/link";
 import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import { notFound } from "next/navigation";

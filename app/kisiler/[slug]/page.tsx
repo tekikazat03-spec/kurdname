@@ -29,6 +29,7 @@ export async function generateMetadata({
       title: `${person.name} | KURDNAME`,
       description: description.slice(0, 160),
       type: "article",
+      url: `/kisiler/${encodeURIComponent(person.slug)}`,
     },
   };
 }

@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+import type { Metadata } from "next";
+import Link from "next/link";
 
 type Person = {
   id: string;
@@ -160,3 +161,10 @@ export default async function PeoplePage() {
     </main>
   );
 }
+
+export const metadata: Metadata = {
+  title: "Şahsiyetler",
+  description: "Kürdistan tarihinde iz bırakmış şahsiyetlerin kaynaklı biyografileri, yaşamları, eserleri ve tarihsel faaliyetleri.",
+  alternates: { canonical: "/kisiler" },
+  openGraph: { title: "Şahsiyetler | KURDNAME", description: "Kürdistan tarihinde iz bırakmış şahsiyetlerin kaynaklı biyografileri, yaşamları, eserleri ve tarihsel faaliyetleri.", url: "/kisiler" },
+};

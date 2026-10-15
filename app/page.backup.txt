@@ -1,0 +1,89 @@
+﻿"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+const categories = [
+  { title: "Şahsiyetler", href: "/kisiler", number: "01" },
+  { title: "Örgütler", href: "/orgutler", number: "02" },
+  { title: "Partiler", href: "/partiler", number: "03" },
+];
+
+export default function Home() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <main className="min-h-screen bg-[#090c0a] text-[#f2eadc]">
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-30"
+          style={{ backgroundImage: "url('/kurdname-bg.png')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#090c0a]/60 to-[#090c0a]" />
+
+        <div className="relative z-10 flex flex-col items-center">
+          <svg viewBox="0 0 200 200" className="mb-10 h-32 w-32 text-[#d9ac57]">
+            {Array.from({ length: 21 }, (_, i) => (
+              <line
+                key={i}
+                x1="100"
+                y1="15"
+                x2="100"
+                y2="45"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                transform={`rotate(${i * 360 / 21} 100 100)`}
+              />
+            ))}
+            <circle cx="100" cy="100" r="42" fill="currentColor" />
+          </svg>
+
+          <p className="mb-5 text-xs uppercase tracking-[0.4em] text-[#d9ac57]">
+            Kürdistan'ın Dijital Arşivi
+          </p>
+
+          <h1 className="text-5xl font-semibold tracking-[0.12em] sm:text-8xl">
+            KURDNAME
+          </h1>
+
+          <p className="mt-8 text-lg text-white/60">
+            Geçmişin izleri, geleceğin hafızası.
+          </p>
+
+          <button
+            onClick={() => { setOpen(true); setTimeout(() => document.getElementById("archive")?.scrollIntoView({ behavior: "smooth" }), 100); }}
+            className="mt-12 border border-[#d9ac57] px-12 py-5 text-sm uppercase tracking-[0.2em] text-[#d9ac57] transition hover:bg-[#d9ac57] hover:text-black"
+          >
+            Arşivi Keşfet ↓
+          </button>
+        </div>
+      </section>
+
+      {open && (
+        <section id="archive" className="mx-auto max-w-7xl px-6 py-24">
+          <h2 className="mb-14 text-center text-4xl font-semibold">
+            Dijital Arşiv
+          </h2>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {categories.map((category) => (
+              <Link
+                key={category.href}
+                href={category.href}
+                className="group flex min-h-72 flex-col justify-between border border-[#d9ac57]/30 bg-[#111711] p-9 transition hover:border-[#d9ac57]"
+              >
+                <span className="text-sm text-[#d9ac57]">{category.number}</span>
+                <h3 className="text-3xl">{category.title}</h3>
+                <span className="self-end text-2xl text-[#d9ac57] group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+    </main>
+  );
+}
+

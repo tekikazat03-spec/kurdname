@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { asList, getParties, type Photo } from "@/lib/parties";
 
 export default async function PartiesPage() {
@@ -113,3 +114,10 @@ export default async function PartiesPage() {
     </main>
   );
 }
+
+export const metadata: Metadata = {
+  title: "Siyasi Partiler",
+  description: "Kürdistan siyasi tarihindeki partilerin kuruluşları, faaliyetleri, önemli şahsiyetleri ve tarihsel gelişimleri.",
+  alternates: { canonical: "/partiler" },
+  openGraph: { title: "Siyasi Partiler | KURDNAME", description: "Kürdistan siyasi tarihindeki partilerin kuruluşları, faaliyetleri, önemli şahsiyetleri ve tarihsel gelişimleri.", url: "/partiler" },
+};
