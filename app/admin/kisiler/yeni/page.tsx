@@ -1,5 +1,7 @@
 "use client";
 
+import PdfImporter from "./PdfImporter";
+
 import { ChangeEvent, FormEvent, useState } from "react";
 import { push, ref, set } from "firebase/database";
 
@@ -247,6 +249,16 @@ export default function NewPersonPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          <PdfImporter
+            disabled={saving}
+            onImport={(person) => {
+              setName(person.name);
+              setBirth(person.birth);
+              setDeath(person.death);
+              setBiography(person.biography);
+              setSources(person.sources);
+            }}
+          />
           {/* FOTOĞRAF */}
           <section className="border border-white/10 bg-white/[0.02] p-8">
             <h2 className="text-xl text-white">
