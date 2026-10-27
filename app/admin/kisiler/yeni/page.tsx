@@ -2,8 +2,10 @@
 
 import PdfImporter from "./PdfImporter";
 
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { push, ref, set } from "firebase/database";
+
+import type { PdfPhoto } from "@/lib/pdf/images";
 
 import { database } from "@/lib/firebase";
 
@@ -13,6 +15,13 @@ type BiographySection = {
 };
 
 export default function NewPersonPage() {
+  const [importVersion, setImportVersion] = useState(0);
+  const [pdfPhotos, setPdfPhotos] = useState<PdfPhoto[]>([]);
+  const [readingPdf, setReadingPdf] = useState(false);
+  const [saveProgress, setSaveProgress] = useState("");
+  const uploadCache = useRef(new Map<File, string>());
+  const pendingPerson = useRef<ReturnType<typeof push> | null>(null);
+  const submitting = useRef(false);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
 
@@ -88,6 +97,8 @@ export default function NewPersonPage() {
   }
 
   async function uploadToCloudinary(file: File) {
+    const cached = uploadCache.current.get(file);
+    if (cached) return cached;
     const cloudName =
       process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
@@ -109,6 +120,7 @@ export default function NewPersonPage() {
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
         method: "POST",
+        signal: AbortSignal.timeout(90000),
         body: formData,
       }
     );
@@ -119,11 +131,14 @@ export default function NewPersonPage() {
 
     const data = await response.json();
 
+    if (typeof data.secure_url !== "string" || !data.secure_url.startsWith("https://")) throw new Error("Fotoğraf bağlantısı alınamadı.");
+    uploadCache.current.set(file, data.secure_url);
     return data.secure_url as string;
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting.current || readingPdf) return;
 
     if (!name.trim()) {
       alert("Lütfen kişinin adını yaz.");
@@ -136,13 +151,24 @@ export default function NewPersonPage() {
     }
 
     try {
+      submitting.current = true;
       setSaving(true);
+      setSaveProgress("Ana fotoğraf yükleniyor...");
 
       // 1. Fotoğrafı Cloudinary'ye yükle
       const imageUrl = await uploadToCloudinary(image);
 
       // 2. Firebase'de yeni kayıt için ID oluştur
-      const personRef = push(ref(database, "people"));
+      const personRef = pendingPerson.current ?? push(ref(database, "people"));
+      pendingPerson.current = personRef;
+      const media: Record<string, { kind: string; format: string; title: string; source: string; url: string; createdAt: number }> = {};
+      for (let index = 0; index < pdfPhotos.length; index++) {
+        const photo = pdfPhotos[index];
+        setSaveProgress(`Galeri fotoğrafı ${index + 1}/${pdfPhotos.length} yükleniyor...`);
+        const url = await uploadToCloudinary(photo.file);
+        media[photo.id] = { kind: "photo", format: "image", title: photo.title.trim() || `Görsel ${index + 1}`, source: photo.source, url, createdAt: Date.now() };
+      }
+      setSaveProgress("Bölümler ve galeri kaydediliyor...");
 
       // 3. Kişi verisini hazırla
       const personData = {
@@ -178,6 +204,7 @@ export default function NewPersonPage() {
           .filter(Boolean),
 
         imageUrl,
+        media,
 
         createdAt: new Date().toISOString(),
       };
@@ -188,6 +215,10 @@ export default function NewPersonPage() {
       alert("Kişi başarıyla kaydedildi!");
 
       // Formu temizle
+      setPdfPhotos([]);
+      setImportVersion(value => value + 1);
+      uploadCache.current.clear();
+      pendingPerson.current = null;
       setName("");
       setBirth("");
       setDeath("");
@@ -213,6 +244,8 @@ export default function NewPersonPage() {
       );
     } finally {
       setSaving(false);
+      submitting.current = false;
+      setSaveProgress("");
     }
   }
 
@@ -250,15 +283,35 @@ export default function NewPersonPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <PdfImporter
+            key={importVersion}
             disabled={saving}
+            onBusyChange={setReadingPdf}
             onImport={(person) => {
-              setName(person.name);
-              setBirth(person.birth);
-              setDeath(person.death);
-              setBiography(person.biography);
-              setSources(person.sources);
+              if (person.name) setName(person.name);
+              if (person.birth) setBirth(person.birth);
+              if (person.death) setDeath(person.death);
+              if (person.biography.length) setBiography(person.biography);
+              if (person.sources) setSources(person.sources);
+              setPdfPhotos(previous => [...previous, ...person.photos.filter(photo => !previous.some(item => item.id === photo.id))]);
+              if (!image && person.photos[0]) {
+                setImage(person.photos[0].file);
+                setImagePreview(person.photos[0].preview);
+              }
             }}
           />
+          <fieldset disabled={saving || readingPdf} className="space-y-8 disabled:opacity-60">
+          {pdfPhotos.length > 0 && <section className="border border-white/10 p-8">
+            <h2 className="text-xl">PDF Fotoğraf Galerisi · {pdfPhotos.length}</h2>
+            <p className="mt-2 text-sm text-white/50">Bu görseller kişi kaydedildiğinde sitedeki galerisinde görünecek. Başlıkları düzenleyebilir, istemediklerini çıkarabilirsin.</p>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {pdfPhotos.map(photo => <div key={photo.id} className="border border-white/10 p-3">
+                <img src={photo.preview} alt={photo.title} className="h-44 w-full object-contain" />
+                <input aria-label="Galeri fotoğrafı başlığı" value={photo.title} onChange={event => setPdfPhotos(items => items.map(item => item.id === photo.id ? { ...item, title: event.target.value } : item))} className="mt-3 w-full bg-black/30 p-2" />
+                <button type="button" onClick={() => { setImage(photo.file); setImagePreview(photo.preview); }} className="mt-3 mr-4 text-sm text-amber-200">Ana fotoğraf yap</button>
+                <button type="button" onClick={() => setPdfPhotos(items => items.filter(item => item.id !== photo.id))} className="mt-3 text-sm text-red-300">Galeriden çıkar</button>
+              </div>)}
+            </div>
+          </section>}
           {/* FOTOĞRAF */}
           <section className="border border-white/10 bg-white/[0.02] p-8">
             <h2 className="text-xl text-white">
@@ -491,14 +544,15 @@ Sevr Antlaşması, 10 Ağustos 1920...`}
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || readingPdf}
               className="min-w-56 bg-[#e8e3d8] px-8 py-4 text-xs font-medium uppercase tracking-[0.2em] text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving
-                ? "KAYDEDİLİYOR..."
+                ? saveProgress || "KAYDEDİLİYOR..."
                 : "KİŞİYİ KAYDET"}
             </button>
           </div>
+          </fieldset>
         </form>
       </div>
     </main>
