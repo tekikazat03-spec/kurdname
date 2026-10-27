@@ -1,150 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PDFDocumentLoadingTask } from "pdfjs-dist";
 import type { Worker } from "tesseract.js";
 
-type Section = {
-  title: string;
-  content: string;
-};
-
-type ImportedPerson = {
-  name: string;
-  birth: string;
-  death: string;
-  biography: Section[];
-  sources: string;
-};
+import { parseText, structuredText, type TextLine } from "@/lib/pdf/structure";
+import { extractPhotos, type PdfPhoto } from "@/lib/pdf/images";
 
 type Props = {
-  onImport: (person: ImportedPerson) => void;
+  onImport: (person: ReturnType<typeof parseText> & { photos: PdfPhoto[] }) => void;
   disabled?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 };
 
-function normalize(value: string) {
-  return value
-    .toLocaleLowerCase("tr-TR")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ı/g, "i")
-    .trim();
-}
-
-function cleanHeading(value: string) {
-  return value
-    .replace(/^#{1,6}\s*/, "")
-    .replace(/^\*\*(.*?)\*\*$/, "$1")
-    .trim();
-}
-
-function isSourcesHeading(value: string) {
-  const heading = normalize(
-    cleanHeading(value)
-      .replace(/^\d+[.)]\s*/, "")
-      .replace(/:$/, "")
-  );
-
-  return [
-    "kaynakca",
-    "kaynaklar",
-    "kaynakca ve notlar",
-    "kaynaklar ve notlar",
-    "bibliyografya",
-    "references",
-    "bibliography",
-  ].includes(heading);
-}
-
-function parseText(text: string): ImportedPerson {
-  const lines = text.replace(/\r/g, "").split("\n");
-  const firstLine = lines.find((line) => line.trim()) ?? "";
-  const sourceIndex = lines.findIndex(isSourcesHeading);
-  const body = sourceIndex >= 0 ? lines.slice(0, sourceIndex) : lines;
-  const sources =
-    sourceIndex >= 0
-      ? lines.slice(sourceIndex + 1).join("\n").trim()
-      : "";
-
-  function readField(labels: string[]) {
-    for (const line of body) {
-      const colon = line.indexOf(":");
-      if (colon < 0) continue;
-
-      const label = normalize(
-        line.slice(0, colon).replace(/\*\*/g, "")
-      );
-
-      if (labels.includes(label)) {
-        return line.slice(colon + 1).replace(/^\*\*/, "").trim();
-      }
-    }
-    return "";
-  }
-
-  const biography: Section[] = [];
-  let current: Section = { title: "Biyografi", content: "" };
-
-  function flush() {
-    if (current.content.trim() || current.title !== "Biyografi") {
-      biography.push({
-        title: current.title.trim(),
-        content: current.content.trim(),
-      });
-    }
-  }
-
-  for (let i = 0; i < body.length; i++) {
-    const raw = body[i];
-    const line = raw.trim();
-
-    const beforeBlank = i > 0 && !body[i - 1].trim();
-    const afterBlank = i + 1 < body.length && !body[i + 1].trim();
-
-    const explicitHeading =
-      /^#{1,6}\s+\S/.test(line) ||
-      /^\*\*[^*]+\*\*$/.test(line) ||
-      /^\d+[.)]\s+\S/.test(line);
-
-    const isolatedHeading =
-      beforeBlank &&
-      afterBlank &&
-      line.length > 2 &&
-      line.length <= 90 &&
-      !/[.!?;:,]$/.test(line) &&
-      !line.includes(":") &&
-      !/^[•\-–]/.test(line);
-
-    if (
-      i > 0 &&
-      line.length <= 140 &&
-      (explicitHeading || isolatedHeading)
-    ) {
-      flush();
-      current = { title: cleanHeading(line), content: "" };
-    } else {
-      current.content += `${raw}\n`;
-    }
-  }
-
-  flush();
-
-  return {
-    name: cleanHeading(firstLine),
-    birth: readField(["dogum", "dogum tarihi"]),
-    death: readField(["olum", "olum tarihi"]),
-    biography:
-      biography.length > 0
-        ? biography
-        : [{ title: "Biyografi", content: body.join("\n").trim() }],
-    sources,
-  };
+async function within<T>(promise: Promise<T>, milliseconds: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([promise, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(label + " zaman aşımına uğradı. Yeniden deneyebilirsin.")), milliseconds); })]);
+  } finally { clearTimeout(timer); }
 }
 
 export default function PdfImporter({
   onImport,
   disabled = false,
+  onBusyChange,
 }: Props) {
+  const cancelRead = useRef<(() => void) | null>(null);
+  useEffect(() => () => cancelRead.current?.(), []);
+  const [photos, setPhotos] = useState<PdfPhoto[]>([]);
+  const [applied, setApplied] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [forceOcr, setForceOcr] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -160,7 +44,12 @@ export default function PdfImporter({
     setNotice("");
     setText("");
     setBusy(true);
+    onBusyChange?.(true);
+    setPhotos([]);
+    setApplied(false);
 
+    let cancelled = false;
+    cancelRead.current = () => { cancelled = true; void task?.destroy().catch(() => {}); void worker?.terminate().catch(() => {}); };
     let task: PDFDocumentLoadingTask | undefined;
     let worker: Worker | undefined;
     let currentPage = 0;
@@ -175,13 +64,14 @@ export default function PdfImporter({
 
       const pdfjs = await import("pdfjs-dist");
       pdfjs.GlobalWorkerOptions.workerSrc =
-        "/pdf/pdf.worker.min.mjs";
+        new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
       task = pdfjs.getDocument({
         data: new Uint8Array(await file.arrayBuffer()),
+        maxImageSize: 24_000_000,
       });
 
-      const pdf = await task.promise;
+      const pdf = await within(task.promise, 45000, "PDF açma");
 
       if (pdf.numPages > 40) {
         throw new Error(
@@ -189,40 +79,58 @@ export default function PdfImporter({
         );
       }
 
-      const pages: string[] = [];
+      const pages: TextLine[][] = [];
+      const extracted: PdfPhoto[] = [];
+      const warnings: string[] = [];
+      const seen = new Set<string>();
+      let imageBytes = 0;
 
       for (let number = 1; number <= pdf.numPages; number++) {
+        if (cancelled) throw new Error("Okuma iptal edildi.");
         currentPage = number;
         setProgress(`Sayfa ${number}/${pdf.numPages} okunuyor...`);
 
         const page = await pdf.getPage(number);
         const content = await page.getTextContent();
 
-        let pageText = "";
-        let previousY: number | undefined;
-
+        const lines: TextLine[] = [];
         for (const item of content.items) {
-          if (!("str" in item)) continue;
-
-          const y = item.transform[5];
-          const height = Math.max(Math.abs(item.height), 1);
-
-          if (
-            previousY !== undefined &&
-            Math.abs(y - previousY) > height * 0.6
-          ) {
-            pageText +=
-              Math.abs(y - previousY) > height * 1.8
-                ? "\n\n"
-                : "\n";
-          }
-
-          pageText += item.str;
-          pageText += item.hasEOL ? "\n" : " ";
-          previousY = y;
+          if (!("str" in item) || !item.str.trim()) continue;
+          const size = Math.hypot(item.transform[2], item.transform[3]) || Math.abs(item.height) || 12;
+          const bold = /bold|black|heavy|demi/i.test(item.fontName + " " + (content.styles[item.fontName]?.fontFamily || ""));
+          const y = item.transform[5], x = item.transform[4];
+          const previous = lines[lines.length - 1];
+          if (previous && Math.abs(previous.y - y) < Math.min(previous.size, size) * 0.35) {
+            previous.text += " " + item.str;
+            previous.bold = previous.bold && bold;
+            previous.size = Math.max(previous.size, size);
+          } else lines.push({ text: item.str, size, bold, x, y, page: number, fontName: item.fontName });
         }
-
+        let pageText = lines.map(line => line.text).join("\n");
+        const scanned = pageText.replace(/\s/g, "").length < 30;
+        const original = page.getViewport({ scale: 1 });
+        const scale = Math.min(2.5, 2200 / Math.max(original.width, original.height));
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Sayfa görüntüsü oluşturulamadı.");
+        try {
+          await within(page.render({ canvas, canvasContext: context, viewport, background: "white" }).promise, 60000, "Sayfa işleme");
+          for (const line of lines) {
+            if (line.fontName && page.commonObjs.has(line.fontName)) {
+              const font = page.commonObjs.get(line.fontName) as { name?: string };
+              line.bold ||= /bold|black|heavy|demi/i.test(font?.name || "");
+            }
+          }
+          const result = await extractPhotos(page, pdfjs.OPS, file.name, seen);
+          extracted.push(...result.photos); warnings.push(...result.warnings);
+          imageBytes += result.photos.reduce((sum, photo) => sum + photo.file.size, 0);
+          if (extracted.length > 150 || imageBytes > 60 * 1024 * 1024) throw new Error("Çıkarılan görseller 150 adet veya 60 MB sınırını aştı. PDF’yi daha küçük parçalara ayır.");
+          if (scanned) warnings.push(`Sayfa ${number} taranmış olabilir. Sayfa görseli içindeki fotoğraflar ayrı nesneler değilse otomatik ayrılamaz; galeri önizlemesini kontrol et.`);
         if (forceOcr || pageText.replace(/\s/g, "").length < 30) {
+          try {
+          if (cancelled) throw new Error("Okuma iptal edildi.");
           if (!worker) {
             setProgress(
               "Görüntüden okuma hazırlanıyor. İlk açılış biraz sürebilir..."
@@ -230,7 +138,9 @@ export default function PdfImporter({
 
             const { createWorker } = await import("tesseract.js");
 
-            worker = await createWorker("tur+eng", 1, {
+            let abandoned = false;
+            try {
+            worker = await within(createWorker("tur+eng", 1, {
               logger: (message) => {
                 if (message.status === "recognizing text") {
                   setProgress(
@@ -239,67 +149,51 @@ export default function PdfImporter({
                   );
                 }
               },
-            });
+            }).then(created => { if (cancelled || abandoned) { void created.terminate(); throw new Error("Okuma iptal edildi."); } worker = created; return created; }), 90000, "Görüntüden okuma hazırlığı");
+            } catch (error) { abandoned = true; throw error; }
           }
 
-          const original = page.getViewport({ scale: 1 });
-          const scale = Math.min(
-            3,
-            2400 / Math.max(original.width, original.height)
-          );
-          const viewport = page.getViewport({ scale });
-
-          const canvas = document.createElement("canvas");
-          canvas.width = Math.ceil(viewport.width);
-          canvas.height = Math.ceil(viewport.height);
-
-          const context = canvas.getContext("2d");
-          if (!context) {
-            throw new Error("Sayfa görüntüsü oluşturulamadı.");
-          }
-
-          try {
-            await page.render({
-              canvas,
-              canvasContext: context,
-              viewport,
-              background: "white",
-            }).promise;
-
-            const result = await worker.recognize(canvas);
-            pageText = result.data.text;
-          } finally {
-            canvas.width = 0;
-            canvas.height = 0;
+          if (!worker) throw new Error("Görüntüden okuma başlatılamadı.");
+          const result = await within(worker.recognize(canvas), 120000, "Görüntüden okuma");
+          pageText = result.data.text;
+          lines.splice(0, lines.length, ...pageText.split("\n").map((text, index) => ({ text, size: 12, bold: false, x: 0, y: -index * 16, page: number })));
+          } catch (ocrError) {
+            if (cancelled) throw ocrError;
+            warnings.push(`Sayfa ${number}: görüntüden okuma başarısız. ${ocrError instanceof Error ? ocrError.message : "Metni elle kontrol et."}`);
+            await worker?.terminate().catch(() => {}); worker = undefined;
           }
         }
+        } finally { canvas.width = 0; canvas.height = 0; }
 
         if (!pageText.trim()) emptyPages.push(number);
 
-        pages.push(pageText.trim());
+        pages.push(lines);
         page.cleanup();
       }
 
-      const result = pages.join("\n\n").trim();
+      const result = structuredText(pages).trim();
 
-      if (!result) {
+      if (!result && !extracted.length) {
         throw new Error(
           "PDF'den yazı okunamadı. Daha net bir dosya kullan."
         );
       }
 
+      if (cancelled) throw new Error("Okuma iptal edildi.");
       setText(result);
+      setPhotos(extracted);
+      setNotice(warnings.join("\n"));
       setProgress("Okuma tamamlandı.");
 
       if (emptyPages.length) {
-        setNotice(
+        setNotice(warnings.join("\n") + "\n" +
           `Metin okunamayan sayfalar: ${emptyPages.join(", ")}. ` +
           "Bunlar boş sayfa değilse aktarım öncesinde kontrol et."
         );
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "PDF okunamadı."
+        cancelled ? "Okuma iptal edildi." : err instanceof Error ? err.message : "PDF okunamadı."
       );
       setProgress("");
     } finally {
@@ -315,23 +209,26 @@ export default function PdfImporter({
         // Okuma sonucunu koru.
       }
 
+      cancelRead.current = null;
       setBusy(false);
+      onBusyChange?.(false);
     }
   }
 
   function applyImport() {
-    if (!text.trim() || busy || disabled) return;
+    if ((!text.trim() && !photos.length) || busy || disabled || applied) return;
 
     if (
       !window.confirm(
-        "Ad, doğum, ölüm, biyografi ve kaynaklar alanları " +
-        "bu metinden oluşturulan taslakla değiştirilecek. Devam edilsin mi?"
+        "PDF’den bulunan alanlar forma aktarılacak; mevcut dolu alanların " +
+        "yerini alacak. Seçilen fotoğraflar galeriye eklenecek. Devam edilsin mi?"
       )
     ) return;
 
-    onImport(parseText(text));
+    onImport({ ...parseText(text), photos });
+    setApplied(true);
 
-    setNotice(
+    setNotice(previous => previous + "\n" +
       "Taslak forma aktarıldı. Başlıkları, tarihleri ve özel isimleri " +
       "kontrol et. Henüz siteye kaydedilmedi."
     );
@@ -357,6 +254,8 @@ export default function PdfImporter({
         className="mt-6 block w-full text-sm text-white/70"
         onChange={(event) => {
           setFile(event.target.files?.[0] ?? null);
+          setPhotos([]);
+          setApplied(false);
           setText("");
           setError("");
           setNotice("");
@@ -383,6 +282,8 @@ export default function PdfImporter({
         {busy ? "PDF okunuyor..." : "PDF’yi Oku"}
       </button>
 
+      {busy && <button type="button" onClick={() => cancelRead.current?.()} className={`${buttonClass} ml-3`}>İptal et</button>}
+
       <p role="status" className="mt-4 text-sm text-[#e3c88e]">
         {progress}
       </p>
@@ -394,12 +295,12 @@ export default function PdfImporter({
       )}
 
       {notice && (
-        <p role="status" className="mt-4 text-sm leading-6 text-amber-200">
+        <p role="status" className="mt-4 whitespace-pre-line text-sm leading-6 text-amber-200">
           {notice}
         </p>
       )}
 
-      {text && (
+      {(text || photos.length > 0) && (
         <div className="mt-6">
           <label htmlFor="pdf-text" className="text-sm text-white">
             Okunan metin
@@ -415,19 +316,26 @@ export default function PdfImporter({
           <textarea
             id="pdf-text"
             value={text}
-            onChange={(event) => setText(event.target.value)}
+            onChange={(event) => { setText(event.target.value); setApplied(false); }}
             disabled={busy || disabled}
             rows={16}
             className="mt-3 w-full border border-white/15 bg-black/30 p-4 text-sm leading-7 text-white outline-none"
           />
 
+          <div className="mt-5 space-y-3">
+            <h3>{parseText(text).biography.length} bölüm · {photos.length} görsel</h3>
+            {parseText(text).biography.map((section, index) => <details key={index} className="border border-white/15 p-3"><summary>{section.title}</summary><p className="whitespace-pre-wrap text-sm mt-3">{section.content}</p></details>)}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {photos.map(photo => <div key={photo.id}><img src={photo.preview} alt={photo.title} className="h-32 w-full object-contain"/><p className="text-xs">{photo.title}</p><button type="button" disabled={busy || disabled || applied} onClick={() => setPhotos(items => items.filter(item => item.id !== photo.id))} className="text-sm text-red-300">Çıkar</button></div>)}
+            </div>
+          </div>
           <button
             type="button"
             onClick={applyImport}
-            disabled={busy || disabled || !text.trim()}
+            disabled={busy || disabled || (!text.trim() && !photos.length) || applied}
             className={`${buttonClass} mt-4`}
           >
-            Metni Forma Aktar
+            {applied ? "Forma aktarıldı" : "Bölümleri ve Fotoğrafları Forma Aktar"}
           </button>
         </div>
       )}
