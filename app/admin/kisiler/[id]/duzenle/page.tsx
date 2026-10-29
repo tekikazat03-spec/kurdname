@@ -190,7 +190,7 @@ export default function EditPersonPage() {
       title: section.title || "",
       content: section.content || "",
     })));
-    setSources((record.sources || []).join("\\n").replaceAll("\\n", "\n"));
+    setSources((record.sources || []).join("\n"));
     setSaveStatus(`PDF'den ${record.biography?.length || 0} ayrı bölüm ve ${record.sources?.length || 0} kaynak forma aktarıldı. Kaydet butonuna basarak değişiklikleri Firebase'e işle.`);
   }
 
