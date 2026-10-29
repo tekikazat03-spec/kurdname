@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { mergeImportedPeople } from "@/lib/imported-biographies";
 
 type Person = {
   id: string;
@@ -21,22 +22,22 @@ async function getPeople(): Promise<Person[]> {
     );
 
     if (!response.ok) {
-      return [];
+      return mergeImportedPeople([]);
     }
 
     const data = await response.json();
 
     if (!data) {
-      return [];
+      return mergeImportedPeople([]);
     }
 
-    return Object.entries(data).map(([key, value]) => ({
+    return mergeImportedPeople(Object.entries(data).map(([key, value]) => ({
       ...(value as Person),
       id: key,
-    }));
+    })));
   } catch (error) {
     console.error("Kişiler alınamadı:", error);
-    return [];
+    return mergeImportedPeople([]);
   }
 }
 
@@ -72,7 +73,7 @@ export default async function AdminPeoplePage() {
             </h1>
 
             <p className="mt-3 text-sm text-white/40">
-              Arşivdeki kişi kayıtlarını yönet.
+              Arşivdeki kişi kayıtlarını yönet. PDF biyografileri de listelenir; Düzenle seçeneğiyle kaydedildiklerinde Firebase\u0027e aktarılır.
             </p>
           </div>
 
@@ -123,6 +124,7 @@ export default async function AdminPeoplePage() {
                 <div className="min-w-0 flex-1">
                   <div className="text-[9px] uppercase tracking-[0.25em] text-[#a99f8b]">
                     {person.category || "Kategori yok"}
+                    {person.id.startsWith("pdf-") && " · PDF arşiv kaydı"}
                   </div>
 
                   <h2 className="mt-2 text-2xl font-light text-white">
@@ -156,12 +158,12 @@ export default async function AdminPeoplePage() {
                     Düzenle
                   </Link>
 
-                  <Link
+                  {!person.id.startsWith("pdf-") && <Link
                     href={`/admin/kisiler/${person.id}/sil`}
                     className="border border-red-500/20 px-4 py-3 text-[10px] uppercase tracking-[0.15em] text-red-400/60 transition hover:border-red-500/50 hover:text-red-400"
                   >
                     Sil
-                  </Link>
+                  </Link>}
                 </div>
               </div>
             ))}

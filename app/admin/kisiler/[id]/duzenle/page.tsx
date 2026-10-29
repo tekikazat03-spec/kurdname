@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { get, ref, update } from "firebase/database";
-import { database } from "@/lib/firebase";
+import { get, push, ref, set, update } from "firebase/database";
+import { auth, database } from "@/lib/firebase";
+import { ADMIN_UID } from "@/lib/admin";
+import { importedPeople } from "@/lib/imported-biographies";
 
 type BiographySection = {
   title: string;
@@ -30,6 +32,7 @@ export default function EditPersonPage() {
   const router = useRouter();
 
   const id = params.id as string;
+  const isImported = id.startsWith("pdf-");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,15 +56,25 @@ export default function EditPersonPage() {
   useEffect(() => {
     async function loadPerson() {
       try {
-        const snapshot = await get(ref(database, `people/${id}`));
-
-        if (!snapshot.exists()) {
-          alert("Kişi bulunamadı.");
-          router.push("/admin/kisiler");
-          return;
+        await auth.authStateReady();
+        let data: Person;
+        if (isImported) {
+          const record = importedPeople.find((person) => person.id === id);
+          if (!record) {
+            alert("PDF biyografisi bulunamadı.");
+            router.push("/admin/kisiler");
+            return;
+          }
+          data = record as Person;
+        } else {
+          const snapshot = await get(ref(database, `people/${id}`));
+          if (!snapshot.exists()) {
+            alert("Kişi bulunamadı.");
+            router.push("/admin/kisiler");
+            return;
+          }
+          data = snapshot.val() as Person;
         }
-
-        const data = snapshot.val() as Person;
 
         setName(data.name || "");
         setBirth(data.birth || "");
@@ -91,7 +104,7 @@ export default function EditPersonPage() {
     if (id) {
       loadPerson();
     }
-  }, [id, router]);
+  }, [id, isImported, router]);
 
   function updateBiography(
     index: number,
@@ -150,9 +163,21 @@ export default function EditPersonPage() {
         .map((source) => source.trim())
         .filter(Boolean);
 
-      await update(ref(database, `people/${id}`), {
+      await auth.authStateReady();
+      if (auth.currentUser?.uid !== ADMIN_UID) {
+        throw new Error("Yönetici hesabıyla giriş yapılmalı.");
+      }
+      await auth.currentUser.getIdToken();
+
+      const importedSource = isImported
+        ? importedPeople.find((person) => person.id === id)
+        : undefined;
+
+      const payload = {
         name: name.trim(),
-        slug: createSlug(name),
+        slug: importedSource && name.trim() === importedSource.name
+          ? importedSource.slug
+          : createSlug(name),
         birth: birth.trim(),
         death: death.trim(),
         tags: cleanTags,
@@ -160,15 +185,50 @@ export default function EditPersonPage() {
         biography: cleanBiography,
         sources: cleanSources,
         imageUrl: imageUrl.trim(),
-      });
+      };
 
-      alert("Kişi başarıyla güncellendi.");
+      if (isImported && importedSource) {
+        // Never blindly create a duplicate if this biography already exists in Firebase.
+        const snapshot = await get(ref(database, "people"));
+        const entries = snapshot.exists()
+          ? Object.entries(snapshot.val() as Record<string, { slug?: string; name?: string }>)
+          : [];
+        const normalize = (text: string) => text.toLocaleLowerCase("tr")
+          .replace(/[ıî]/g, "i").replace(/[êé]/g, "e")
+          .replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ç/g, "c")
+          .replace(/ö/g, "o").replace(/ü/g, "u")
+          .normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        const names = [importedSource.slug, importedSource.name, ...importedSource.aliases].map(normalize);
+        const existing = entries.find(([, record]) =>
+          names.includes(normalize(record?.slug || "")) ||
+          names.includes(normalize(record?.name || ""))
+        );
+
+        if (existing) {
+          await update(ref(database, `people/${existing[0]}`), payload);
+        } else {
+          const personRef = push(ref(database, "people"));
+          await set(personRef, {
+            id: personRef.key,
+            category: "Şahsiyetler",
+            createdAt: new Date().toISOString(),
+            sourceKind: "pdf-import",
+            originalFileName: importedSource.originalFileName,
+            ...payload,
+          });
+        }
+      } else {
+        await update(ref(database, `people/${id}`), payload);
+      }
+
+      alert(isImported ? "Kişi Firebase'e kaydedildi. Artık panelden düzenleyebilirsin." : "Kişi başarıyla güncellendi.");
 
       router.push("/admin/kisiler");
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Kişi güncellenirken bir hata oluştu.");
+      alert(error instanceof Error ? error.message : "Kişi kaydedilirken hata oluştu.");
     } finally {
       setSaving(false);
     }
@@ -212,7 +272,7 @@ export default function EditPersonPage() {
           </h1>
 
           <p className="mt-3 text-sm text-white/40">
-            Kişinin arşiv bilgilerini güncelle.
+            {isImported ? "PDF biyografisini düzenle. Kaydedince Firebase kayıtlarına eklenir." : "Kişinin arşiv bilgilerini güncelle."}
           </p>
         </div>
 
@@ -420,7 +480,7 @@ export default function EditPersonPage() {
               disabled={saving}
               className="bg-[#e8e3d8] px-8 py-4 text-[10px] font-medium uppercase tracking-[0.2em] text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+              {saving ? "Kaydediliyor..." : isImported ? "Kaydet ve Firebase\u0027e Ekle" : "Değişiklikleri Kaydet"}
             </button>
           </div>
         </div>
