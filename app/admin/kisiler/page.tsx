@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { mergeImportedPeople } from "@/lib/imported-biographies";
+import SyncMehmedUzun from "./SyncMehmedUzun";
 
 type Person = {
   id: string;
@@ -73,8 +74,9 @@ export default async function AdminPeoplePage() {
             </h1>
 
             <p className="mt-3 text-sm text-white/40">
-              Arşivdeki kişi kayıtlarını yönet. PDF biyografileri de listelenir; Düzenle seçeneğiyle kaydedildiklerinde Firebase\u0027e aktarılır.
+              Arşivdeki kişi kayıtlarını yönet. İçe aktarılan biyografiler de burada listelenir ve düzenlenebilir.
             </p>
+            <SyncMehmedUzun />
           </div>
 
           <Link
