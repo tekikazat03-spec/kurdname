@@ -17,9 +17,30 @@ export type ImportedPerson = {
   originalFileName: string;
   sourceKind: string;
   importedAt: string;
+  importFormatVersion: number;
+  legacyBiographyHash: string;
 };
 
 export const importedPeople: ImportedPerson[] = records as ImportedPerson[];
+
+
+function legacyHash(text: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
+}
+
+function containsOriginalUnstructuredText(
+  current: { biography?: BiographySection[] },
+  imported: ImportedPerson
+): boolean {
+  if (!Array.isArray(current.biography) || current.biography.length !== 1) return false;
+  const body = current.biography[0]?.content;
+  return typeof body === "string" && legacyHash(body) === imported.legacyBiographyHash;
+}
 
 function normalizeName(input: string): string {
   return input
@@ -72,7 +93,8 @@ export function mergeImportedPerson<T extends {
   );
   if (!imported) return remote;
   if (!remote) return imported as unknown as T;
-  const existingBiography = Array.isArray(remote.biography) &&
+  const legacyBiography = containsOriginalUnstructuredText(remote, imported);
+  const existingBiography = !legacyBiography && Array.isArray(remote.biography) &&
     remote.biography.some((section) => typeof section.content === "string" && section.content.trim().length > 0);
   return {
     ...imported,

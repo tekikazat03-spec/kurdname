@@ -7,6 +7,7 @@ import { get, push, ref, set, update } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
 import { ADMIN_UID } from "@/lib/admin";
 import { importedPeople } from "@/lib/imported-biographies";
+import { findImportedPerson } from "@/lib/imported-biographies";
 
 type BiographySection = {
   title: string;
@@ -78,6 +79,19 @@ export default function EditPersonPage() {
             return;
           }
           data = snapshot.val() as Person;
+        }
+
+        // An older Firebase record might still contain the original unsplit PDF text.
+        const imported = findImportedPerson(data.slug || data.name || "");
+        const legacy = imported && Array.isArray(data.biography) &&
+          data.biography.length === 1 && typeof data.biography[0]?.content === "string" &&
+          legacyHash(data.biography[0].content) === imported.legacyBiographyHash;
+        if (legacy && imported) {
+          data = {
+            ...data,
+            biography: imported.biography as BiographySection[],
+            sources: imported.sources,
+          };
         }
 
         setName(data.name || "");
@@ -633,4 +647,13 @@ function createSlug(text: string) {
     .replace(/ç/g, "c")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function legacyHash(text: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
 }
