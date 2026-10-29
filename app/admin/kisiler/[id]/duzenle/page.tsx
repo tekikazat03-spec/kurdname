@@ -180,6 +180,20 @@ export default function EditPersonPage() {
     return result.secure_url;
   }
 
+  function restorePdfSections() {
+    const record = importedPeople.find((person) => person.id === id) || findImportedPerson(name);
+    if (!record) return;
+    if (!window.confirm("Bu kişinin biyografi bölümlerini ve kaynaklarını PDF'deki düzenlenmiş hâliyle değiştirmek istiyor musun? Henüz kaydedilmemiş metin değişikliklerin silinir.")) {
+      return;
+    }
+    setBiography((record.biography || []).map((section) => ({
+      title: section.title || "",
+      content: section.content || "",
+    })));
+    setSources((record.sources || []).join("\\n").replaceAll("\\n", "\n"));
+    setSaveStatus(`PDF'den ${record.biography?.length || 0} ayrı bölüm ve ${record.sources?.length || 0} kaynak forma aktarıldı. Kaydet butonuna basarak değişiklikleri Firebase'e işle.`);
+  }
+
   function updateBiography(
     index: number,
     field: "title" | "content",
@@ -495,15 +509,23 @@ export default function EditPersonPage() {
           <section className="border border-white/10 p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-light text-white">
-                  Biyografi
-                </h2>
-
-                <p className="mt-2 text-xs text-white/30">
-                  Biyografiyi bölümlere ayırabilirsin.
+                <h2 className="text-lg font-light text-white">Biyografi</h2>
+                <p className="mt-2 text-xs text-white/40">
+                  Her PDF başlığı ayrı bölümde görünür. Şu an {biography.length} ayrı bölüm var.
                 </p>
               </div>
 
+              <div className="flex flex-col gap-3 sm:flex-row">
+              {(importedPeople.some((record) => record.id === id) || findImportedPerson(name)) && (
+                <button
+                  type="button"
+                  onClick={restorePdfSections}
+                  disabled={saving}
+                  className="border border-[#b99a5b]/50 px-4 py-3 text-xs text-[#e8d7b3] hover:bg-[#b99a5b]/10 disabled:opacity-50"
+                >
+                  PDF Başlıklarını ve Kaynaklarını Yenile
+                </button>
+              )}
               <button
                 type="button"
                 onClick={addBiographySection}
@@ -511,6 +533,7 @@ export default function EditPersonPage() {
               >
                 + Bölüm Ekle
               </button>
+              </div>
             </div>
 
             <div className="mt-6 space-y-6">
@@ -575,7 +598,7 @@ export default function EditPersonPage() {
             </h2>
 
             <p className="mt-2 text-xs text-white/30">
-              Her kaynağı ayrı satıra yaz.
+              PDF kaynakçası ayrı bir alandır. Kaynakları burada düzenleyebilirsin.
             </p>
 
             <textarea
