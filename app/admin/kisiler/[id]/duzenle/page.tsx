@@ -90,7 +90,7 @@ export default function EditPersonPage() {
           data = {
             ...data,
             biography: imported.biography as BiographySection[],
-            sources: imported.sources,
+            sources: imported.sources || [],
           };
         }
 
