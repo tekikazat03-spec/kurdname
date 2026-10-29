@@ -7,7 +7,8 @@ import { push, ref, set } from "firebase/database";
 
 import type { PdfPhoto } from "@/lib/pdf/images";
 
-import { database } from "@/lib/firebase";
+import { auth, database } from "@/lib/firebase";
+import { ADMIN_UID } from "@/lib/admin";
 
 type BiographySection = {
   title: string;
@@ -153,6 +154,12 @@ export default function NewPersonPage() {
     try {
       submitting.current = true;
       setSaving(true);
+      setSaveProgress("Yönetici oturumu kontrol ediliyor...");
+      await auth.authStateReady();
+      if (auth.currentUser?.uid !== ADMIN_UID) {
+        throw new Error("Yönetici oturumu bulunamadı. Lütfen yönetici hesabınla giriş yap.");
+      }
+      await auth.currentUser.getIdToken();
       setSaveProgress("Ana fotoğraf yükleniyor...");
 
       // 1. Fotoğrafı Cloudinary'ye yükle

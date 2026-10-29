@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import AdminGuard from "./AdminGuard";
 
 export const metadata: Metadata = { title: "Yönetim", robots: { index: false, follow: false } };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <AdminGuard>{children}</AdminGuard>;
 }
