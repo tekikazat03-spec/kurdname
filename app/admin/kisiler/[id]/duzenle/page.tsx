@@ -197,7 +197,7 @@ export default function EditPersonPage() {
           .replace(/[ıî]/g, "i").replace(/[êé]/g, "e")
           .replace(/ş/g, "s").replace(/ğ/g, "g").replace(/ç/g, "c")
           .replace(/ö/g, "o").replace(/ü/g, "u")
-          .normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+          .normalize("NFD").replace(/[^\x00-\x7F]/g, "")
           .replace(/[^a-z0-9]/g, "");
         const names = [importedSource.slug, importedSource.name, ...importedSource.aliases].map(normalize);
         const existing = entries.find(([, record]) =>
