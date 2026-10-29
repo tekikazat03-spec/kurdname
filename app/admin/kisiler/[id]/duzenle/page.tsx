@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { get, push, ref, set, update } from "firebase/database";
@@ -43,6 +43,10 @@ export default function EditPersonPage() {
   const [tags, setTags] = useState("");
   const [shortBio, setShortBio] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
+  const uploadedImageCache = useRef(new Map<File, string>());
 
   const [biography, setBiography] = useState<BiographySection[]>([
     {
@@ -106,6 +110,62 @@ export default function EditPersonPage() {
     }
   }, [id, isImported, router]);
 
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
+    const previewUrl = URL.createObjectURL(imageFile);
+    setImagePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [imageFile]);
+
+  function selectImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      alert("Lütfen JPG, PNG veya WebP fotoğraf seç.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Fotoğraf en fazla 10 MB olabilir.");
+      return;
+    }
+    setImageFile(file);
+    setSaveStatus("");
+  }
+
+  async function uploadImage(file: File): Promise<string> {
+    const cached = uploadedImageCache.current.get(file);
+    if (cached) return cached;
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+    if (!cloudName || !uploadPreset) {
+      throw new Error("Fotoğraf yükleme ayarları eksik. Vercel Cloudinary ayarlarını kontrol et.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`,
+      { method: "POST", body: formData, signal: AbortSignal.timeout(90000) }
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      const message = typeof body?.error?.message === "string" ? body.error.message : "Bilinmeyen hata";
+      throw new Error(`Fotoğraf yüklenemedi: ${message}`);
+    }
+
+    const result = await response.json();
+    if (typeof result.secure_url !== "string" || !result.secure_url.startsWith("https://")) {
+      throw new Error("Fotoğraf için güvenli bağlantı alınamadı.");
+    }
+    uploadedImageCache.current.set(file, result.secure_url);
+    return result.secure_url;
+  }
+
   function updateBiography(
     index: number,
     field: "title" | "content",
@@ -146,6 +206,7 @@ export default function EditPersonPage() {
     }
 
     setSaving(true);
+    setSaveStatus("Değişiklikler hazırlanıyor...");
 
     try {
       const cleanBiography = biography.filter(
@@ -169,6 +230,13 @@ export default function EditPersonPage() {
       }
       await auth.currentUser.getIdToken();
 
+      let savedImageUrl = imageUrl.trim();
+      if (imageFile) {
+        setSaveStatus("Kişi kartı fotoğrafı yükleniyor...");
+        savedImageUrl = await uploadImage(imageFile);
+      }
+
+      setSaveStatus("Kişi bilgileri kaydediliyor...");
       const importedSource = isImported
         ? importedPeople.find((person) => person.id === id)
         : undefined;
@@ -184,7 +252,7 @@ export default function EditPersonPage() {
         shortBio: shortBio.trim(),
         biography: cleanBiography,
         sources: cleanSources,
-        imageUrl: imageUrl.trim(),
+        imageUrl: savedImageUrl,
       };
 
       if (isImported && importedSource) {
@@ -228,7 +296,9 @@ export default function EditPersonPage() {
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : "Kişi kaydedilirken hata oluştu.");
+      const message = error instanceof Error ? error.message : "Kişi kaydedilirken hata oluştu.";
+      setSaveStatus(message);
+      alert(message);
     } finally {
       setSaving(false);
     }
@@ -323,37 +393,74 @@ export default function EditPersonPage() {
 
           {/* FOTOĞRAF */}
           <section className="border border-white/10 p-6">
-            <h2 className="text-lg font-light text-white">
-              Fotoğraf
-            </h2>
-
-            {imageUrl && (
-              <div className="mt-6">
-                <img
-                  src={imageUrl}
-                  alt={name}
-                  className="h-64 w-48 object-cover"
-                />
-              </div>
-            )}
-
-            <div className="mt-5">
-              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Fotoğraf URL
-              </label>
-
-              <input
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Cloudinary fotoğraf URL'si"
-                className="w-full border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white outline-none transition focus:border-white/30"
-              />
-            </div>
-
-            <p className="mt-3 text-xs leading-5 text-white/25">
-              Şimdilik mevcut fotoğraf URL'sini değiştirebilirsin.
-              Yeni fotoğraf yükleme sistemini ayrıca ekleyeceğiz.
+            <h2 className="text-lg font-light text-white">Kişi Kartı Fotoğrafı</h2>
+            <p className="mt-2 text-xs leading-6 text-white/45">
+              Bilgisayarından fotoğraf seç. JPG, PNG veya WebP; en fazla 10 MB.
+              Fotoğraf, değişiklikleri kaydettiğinde siteye yüklenecek.
             </p>
+
+            <div className="mt-6 flex flex-col items-start gap-6 sm:flex-row">
+              <div className="h-64 w-48 shrink-0 overflow-hidden border border-white/15 bg-white/[0.03]">
+                {(imagePreview || imageUrl) ? (
+                  <img
+                    src={imagePreview || imageUrl}
+                    alt={name ? `${name} kart fotoğrafı` : "Kişi fotoğrafı"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-center text-xs text-white/35">
+                    Fotoğraf yok
+                  </div>
+                )}
+              </div>
+
+              <div className="w-full max-w-md">
+                <label className="inline-flex cursor-pointer items-center justify-center border border-[#b99a5b]/60 bg-[#b99a5b]/10 px-6 py-4 text-xs tracking-[0.12em] text-[#e8d7b3] transition hover:bg-[#b99a5b]/20">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={saving}
+                    onChange={selectImage}
+                    className="sr-only"
+                    aria-label="Kişi kartı fotoğrafı seç"
+                  />
+                  Fotoğraf Seç / Değiştir
+                </label>
+
+                {imageFile && (
+                  <div className="mt-4">
+                    <p className="break-all text-sm text-white/65">{imageFile.name}</p>
+                    <p className="mt-2 text-xs text-amber-200/80">
+                      Fotoğraf henüz kaydedilmedi. Aşağıdaki kaydet butonuna bas.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      className="mt-3 text-xs text-white/50 underline hover:text-white"
+                      onClick={() => setImageFile(null)}
+                    >
+                      Fotoğraf seçimini iptal et
+                    </button>
+                  </div>
+                )}
+                <label className="mt-8 block text-xs uppercase tracking-[0.15em] text-white/45">
+                  Alternatif: Fotoğraf URL
+                </label>
+                <input
+                  value={imageUrl}
+                  disabled={saving}
+                  onChange={(event) => {
+                    setImageUrl(event.target.value);
+                    setImageFile(null);
+                  }}
+                  placeholder="https://..."
+                  className="mt-2 w-full border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white outline-none focus:border-white/30"
+                />
+                <p className="mt-2 text-xs leading-5 text-white/35">
+                  Dosya seçmek için bağlantı girmen gerekmiyor.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* KISA BİYOGRAFİ */}
@@ -466,6 +573,7 @@ export default function EditPersonPage() {
           </section>
 
           {/* BUTONLAR */}
+          {saveStatus && <p role="status" aria-live="polite" className="text-sm text-[#e8d7b3]">{saveStatus}</p>}
           <div className="flex flex-col gap-3 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
             <Link
               href="/admin/kisiler"
