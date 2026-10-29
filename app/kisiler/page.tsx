@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { mergeImportedPeople } from "@/lib/imported-biographies";
 
 type Person = {
   id: string;
@@ -20,17 +21,17 @@ async function getPeople(): Promise<Person[]> {
       { cache: "no-store" }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) return mergeImportedPeople([]);
 
     const data = await response.json();
-    if (!data) return [];
+    if (!data) return mergeImportedPeople([]);
 
-    return Object.entries(data).map(([id, value]) => ({
+    return mergeImportedPeople(Object.entries(data).map(([id, value]) => ({
       ...(value as Omit<Person, "id">),
       id,
-    }));
+    })));
   } catch {
-    return [];
+    return mergeImportedPeople([]);
   }
 }
 

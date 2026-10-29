@@ -1,4 +1,5 @@
 ﻿import type { MetadataRoute } from "next";
+import { importedPeople } from "@/lib/imported-biographies";
 
 export const dynamic = "force-dynamic";
 
@@ -64,5 +65,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getRecordUrls("organizations", "orgutler"),
   ]);
 
-  return [...pages, ...people, ...parties, ...organizations];
+  const imported = importedPeople.map((person) => ({
+    url: `${baseUrl}/kisiler/${encodeURIComponent(person.slug)}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+  const all = [...pages, ...people, ...imported, ...parties, ...organizations];
+  return [...new Map(all.map((item) => [item.url, item])).values()];
 }

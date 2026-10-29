@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { findImportedPerson, mergeImportedPerson } from "@/lib/imported-biographies";
 
 export async function generateMetadata({
   params,
@@ -66,13 +67,13 @@ async function getPerson(slug: string): Promise<Person | null> {
     );
 
     if (!response.ok) {
-      return null;
+      return findImportedPerson(slug);
     }
 
     const data = await response.json();
 
     if (!data) {
-      return null;
+      return findImportedPerson(slug);
     }
 
     const people = Object.values(data) as Person[];
@@ -81,10 +82,10 @@ async function getPerson(slug: string): Promise<Person | null> {
       (item) => item.slug === decodeURIComponent(slug)
     );
 
-    return person || null;
+    return mergeImportedPerson(person || null, slug);
   } catch (error) {
     console.error("Kişi alınamadı:", error);
-    return null;
+    return findImportedPerson(slug);
   }
 }
 
