@@ -1,4 +1,5 @@
 import records from "@/data/imported-biographies.json";
+import mehmedUzun from "@/data/mehmed-uzun.json";
 
 export type BiographySection = { title?: string; content?: string };
 export type ImportedPerson = {
@@ -21,7 +22,7 @@ export type ImportedPerson = {
   legacyBiographyHash: string;
 };
 
-export const importedPeople: ImportedPerson[] = records as ImportedPerson[];
+export const importedPeople: ImportedPerson[] = [...records, mehmedUzun] as ImportedPerson[];
 
 
 function legacyHash(text: string): string {
