@@ -126,7 +126,7 @@ export default async function AdminPeoplePage() {
                 <div className="min-w-0 flex-1">
                   <div className="text-[9px] uppercase tracking-[0.25em] text-[#a99f8b]">
                     {person.category || "Kategori yok"}
-                    {person.id.startsWith("pdf-") && " · PDF arşiv kaydı"}
+                    {person.id.startsWith("pdf-") && " · Arşiv kaydı"}
                   </div>
 
                   <h2 className="mt-2 text-2xl font-light text-white">
