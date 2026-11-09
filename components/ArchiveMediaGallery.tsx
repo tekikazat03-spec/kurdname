@@ -13,6 +13,7 @@ type Media = {
   title: string;
   date?: string;
   source?: string;
+  sourceUrl?: string;
 };
 
 function readMedia(value: unknown): Media[] {
@@ -39,14 +40,17 @@ function readMedia(value: unknown): Media[] {
       title: item.title,
       date: typeof item.date === "string" ? item.date : "",
       source: typeof item.source === "string" ? item.source : "",
+      sourceUrl: typeof item.sourceUrl === "string" && item.sourceUrl.startsWith("https://") ? item.sourceUrl : "",
     }];
   });
 }
 
 export default function ArchiveMediaGallery({
   collection,
+  fallbackMedia,
 }: {
   collection: Collection;
+  fallbackMedia?: Record<string, unknown>;
 }) {
   const params = useParams();
   const rawSlug = params.slug;
@@ -85,10 +89,10 @@ export default function ArchiveMediaGallery({
           ? readMedia((found as { media?: unknown }).media)
           : [];
 
-        if (active) setMedia(items);
+        if (active) setMedia(items.length > 0 ? items : readMedia(fallbackMedia));
       } catch (error) {
         console.error("KURDNAME galeri:", error);
-        if (active) setMedia([]);
+        if (active) setMedia(readMedia(fallbackMedia));
       } finally {
         if (active) setLoading(false);
       }
@@ -97,7 +101,7 @@ export default function ArchiveMediaGallery({
     load();
 
     return () => { active = false; };
-  }, [collection, slug]);
+  }, [collection, slug, fallbackMedia]);
 
   useEffect(() => {
     if (!selected) return;
@@ -178,7 +182,9 @@ export default function ArchiveMediaGallery({
 
                 {item.source && (
                   <p className="mt-2 break-words text-sm leading-6 text-[#aaa397]">
-                    Kaynak: {item.source}
+                    Kaynak: {item.sourceUrl ? (
+                      <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#f1e6cc]">{item.source}</a>
+                    ) : item.source}
                   </p>
                 )}
               </div>
