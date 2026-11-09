@@ -102,10 +102,21 @@ export function mergeImportedPerson<T extends {
   const legacyBiography = containsOriginalUnstructuredText(remote, imported);
   const existingBiography = !legacyBiography && Array.isArray(remote.biography) &&
     remote.biography.some((section) => typeof section.content === "string" && section.content.trim().length > 0);
+  const revisedSlugs = new Set([
+    "abdurrahman-qasimlo", "dildar", "haci-qadire-koyi", "leyla-qasim",
+    "sex-mehmude-berzenci", "celadet-ali-bedirxan",
+    "eliser-kocgiri", "leyla-bedirxan",
+  ]);
+  const contentLength = (sections?: BiographySection[]) =>
+    (sections || []).reduce((total, section) => total + (section.content?.length || 0), 0);
+  // Prefer the longer, sectioned archival revision over a stale short Firebase copy.
+  // Explicitly preserve any Firebase biography that is at least as detailed.
+  const preferRevised = revisedSlugs.has(imported.slug) &&
+    contentLength(imported.biography) > contentLength(remote.biography);
   return {
     ...imported,
     ...remote,
-    biography: existingBiography ? remote.biography : imported.biography,
+    biography: preferRevised || !existingBiography ? imported.biography : remote.biography,
     shortBio: remote.shortBio?.trim() ? remote.shortBio : imported.shortBio,
     sources: Array.isArray(remote.sources) && remote.sources.length ? remote.sources : imported.sources,
   } as T;
