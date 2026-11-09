@@ -1000,7 +1000,7 @@
       "6. Mehmed Uzun, Kürt Edebiyatına Giriş, Gendaş Kültür, 1999.",
       "7. Qanatê Kurdo, Tarîxa Edebîyata Kurdî, Stockholm, 1983.",
       "8. Farangis Ghaderi, The Emergence and Development of Modern Kurdish Poetry, University of Exeter, doktora tezi.",
-      "9. Abdulkhaliq Yaqoobi, \"The Progressive Process of Kurdish Nationalist Discourse in Haji Qadir Koyi's Poetry\", Critical Literary Studies, Cilt 2, Sayı 1, 2020, s. 175-183.",
+      "9. Abdulkhaliq Yaqoobi, \"The Progressive Process of Kurdish Nationalist Discourse in Haji Qadir Koyi's Poetry\", Critical Literary Studies, Cilt 2, Sayı 1, 2020, s. 175-183. | https://doi.org/10.34785/j014.2020.339",
       "10. Yadullah Pashbadi, \"The Manifestation of the History of the Kurdish Princes in the Poetry of Haji Qadir al-Koyi\", Humanities Journal of University of Zakho, 2023.",
       "11. \"Hacî Qadirê Koyî: Damezirînerê Kanona Neteweyî ya Kurdî\", Şarkiyat Dergisi, 2022."
     ],
@@ -1098,7 +1098,7 @@
       "Biyografi",
       "Kürt tarihi"
     ],
-    "imageUrl": "",
+    "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Mahmud_Barzanji.jpg",
     "shortBio": "Süleymaniye'deki Kürdistan Krallığı girişiminin lideri.",
     "aliases": [
       "Şeyh Mahmud Berzenci",
@@ -1151,6 +1151,17 @@
     "sourceKind": "pdf-import",
     "importedAt": "2026-11-09",
     "importFormatVersion": 2,
-    "legacyBiographyHash": ""
+    "legacyBiographyHash": "",
+    "imageCredit": "Wikimedia Commons, Mahmud_Barzanji.jpg (PDF'de kamu malı olarak atfedilmiş portre)",
+    "media": {
+      "historical_portrait": {
+        "kind": "photo",
+        "format": "image",
+        "title": "Şêx Mehmûdê Berzencî, 1919 tarihli portre",
+        "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mahmud_Barzanji.jpg",
+        "source": "Wikimedia Commons",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mahmud_Barzanji.jpg"
+      }
+    }
   }
 ]
