@@ -11,6 +11,8 @@ export type ImportedPerson = {
   category?: string;
   tags?: string[];
   imageUrl?: string;
+  imageCredit?: string;
+  media?: Record<string, { kind: string; format: string; url: string; title: string; source?: string; sourceUrl?: string; date?: string }>;
   shortBio?: string;
   biography?: BiographySection[];
   sources?: string[];
