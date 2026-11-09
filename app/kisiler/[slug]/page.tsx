@@ -241,6 +241,29 @@ export default async function PersonPage({
         )}
       </section>
 
+      {person.slug === "celadet-ali-bedirxan" && (
+        <section className="mx-auto max-w-5xl px-6 pb-16 lg:px-10">
+          <h2 className="mb-4 text-2xl font-light text-white">Selim Temo — Çend Celadet Hene?</h2>
+          <p className="mb-5 text-sm leading-7 text-[#bcb5a8]">
+            Celadet Alî Bedirxan'ın yaşamı ve çok yönlü tarihsel kişiliği üzerine konuşma.
+          </p>
+          <div className="aspect-video overflow-hidden border border-white/10">
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/LCeRXFgQHI0"
+              title="Selim Temo — Çend Celadet Hene?"
+              className="h-full w-full"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          </div>
+          <a href="https://youtu.be/LCeRXFgQHI0" target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-sm text-[#c9a66b] underline underline-offset-4">
+            Konuşmayı YouTube'da aç ↗
+          </a>
+        </section>
+      )}
+
       <RelatedArchiveRecords personName={person.name} />
 
       {/* KAYNAKLAR */}
