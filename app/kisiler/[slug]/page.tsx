@@ -37,6 +37,7 @@ export async function generateMetadata({
 import Link from "next/link";
 import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import RelatedArchiveRecords from "@/components/RelatedArchiveRecords";
+import ArchiveSource from "@/components/ArchiveSource";
 
 type BiographySection = {
   title?: string;
@@ -249,12 +250,7 @@ export default async function PersonPage({
 
             <div className="mt-10 space-y-4">
               {person.sources.map((source, index) => (
-                <div
-                  key={index}
-                  className="border-b border-white/10 pb-4 text-sm leading-7 text-[#aaa395]"
-                >
-                  {source}
-                </div>
+                <ArchiveSource key={index} source={source} />
               ))}
             </div>
           </div>
