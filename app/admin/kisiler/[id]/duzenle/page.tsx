@@ -598,7 +598,7 @@ export default function EditPersonPage() {
             </h2>
 
             <p className="mt-2 text-xs text-white/30">
-              PDF kaynakçası ayrı bir alandır. Kaynakları burada düzenleyebilirsin.
+              Her kaynak ayrı satırda tutulur. Doğrudan erişim için: Kaynak künyesi | https://... biçimini kullan. URL bulunmayan kaynaklar ziyaretçiye arama bağlantısı olarak sunulur.
             </p>
 
             <textarea
