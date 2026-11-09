@@ -527,7 +527,7 @@ export default function NewPersonPage() {
             </h2>
 
             <p className="mt-2 text-sm text-white/40">
-              Her kaynağı ayrı satıra yaz.
+              Her kaynağı ayrı satıra yaz. Doğrudan ziyaret edilebilmesi için kaynak künyesinin sonuna | https://... bağlantısını ekle. Bağlantı yoksa okuyucuya arama bağlantısı gösterilir.
             </p>
 
             <textarea
@@ -535,7 +535,7 @@ export default function NewPersonPage() {
               onChange={(e) => setSources(e.target.value)}
               placeholder={`Rohat Alakom, ...
 Metin Atmaca, ...
-Sevr Antlaşması, 10 Ağustos 1920...`}
+Sevr Antlaşması, 10 Ağustos 1920 | https://ornek.org/kaynak`}
               rows={8}
               className="mt-6 w-full resize-y border border-white/10 bg-black/30 p-4 text-sm leading-7 text-white outline-none focus:border-white/30"
             />
