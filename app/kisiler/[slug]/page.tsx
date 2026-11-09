@@ -53,6 +53,8 @@ type Person = {
   category?: string;
   tags?: string[];
   imageUrl?: string;
+  imageCredit?: string;
+  media?: Record<string, { kind: string; format: string; url: string; title: string; source?: string; sourceUrl?: string; date?: string }>;
   shortBio?: string;
   biography?: BiographySection[];
   sources?: string[];
@@ -156,6 +158,11 @@ export default async function PersonPage({
               <div className="flex aspect-[3/4] items-center justify-center border border-white/10 bg-white/[0.03] text-sm text-white/30">
                 Fotoğraf yok
               </div>
+            )}
+            {person.imageCredit && (
+              <p className="mt-3 text-xs leading-5 text-white/40">
+                Görsel: {person.imageCredit}
+              </p>
             )}
           </div>
 
@@ -272,7 +279,7 @@ export default async function PersonPage({
           </Link>
         </div>
       </footer>
-      <ArchiveMediaGallery collection="people" />
+      <ArchiveMediaGallery collection="people" fallbackMedia={person.media} />
     </main>
   );
 }
