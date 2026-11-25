@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
-import LatestArchiveRecords from "@/components/LatestArchiveRecords";
 import ArchiveSearch from "@/components/ArchiveSearch";
 
 const collections = [
@@ -10,8 +9,6 @@ const collections = [
   { number: "02", title: "Örgütler", subtitle: "Cemiyetler ve tarihsel oluşumlar", description: "Kuruluş süreçleri, faaliyetler ve tarihsel bağlam.", href: "/orgutler", symbol: "◈" },
   { number: "03", title: "Partiler", subtitle: "Siyasi tarih", description: "Siyasi hareketler, partiler ve tarihsel gelişmeler.", href: "/partiler", symbol: "❖" },
 ];
-
-const videoId = "rC4n6H7AkpY";
 
 function SunMark() {
   return (
@@ -25,63 +22,53 @@ function SunMark() {
 }
 
 function OpeningMusic() {
-  const playerArea = useRef<HTMLDivElement>(null);
-  const [loadPlayer, setLoadPlayer] = useState(false);
-
   useEffect(() => {
-    const element = playerArea.current;
-    if (!element) return;
-    if (!("IntersectionObserver" in window)) {
-      setLoadPlayer(true);
-      return;
-    }
-    // YouTube permits automatic playback only when the player is sufficiently visible.
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry && entry.intersectionRatio >= 0.5) {
-        setLoadPlayer(true);
-        observer.disconnect();
+    // Use an independently licensed audio file, not a hidden YouTube player.
+    const source = process.env.NEXT_PUBLIC_OPENING_AUDIO_URL;
+    if (!source) return;
+    const audio = new Audio(source);
+    audio.volume = 0.55;
+    audio.loop = false;
+    let timer: number | undefined;
+    let finished = false;
+
+    const stop = () => {
+      finished = true;
+      audio.pause();
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+    const onPlaying = () => {
+      if (finished) {
+        audio.pause();
+        return;
       }
-    }, { threshold: 0.5 });
-    observer.observe(element);
-    return () => observer.disconnect();
+      if (timer === undefined) timer = window.setTimeout(stop, 15000);
+    };
+    const onTimeUpdate = () => {
+      if (audio.currentTime >= 15) stop();
+    };
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("ended", stop);
+    // If audible autoplay is blocked, leave the page silent.
+    void audio.play().catch(() => {});
+    return () => {
+      stop();
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("ended", stop);
+      audio.removeAttribute("src");
+      audio.load();
+    };
   }, []);
 
-  return (
-    <aside className="relative min-w-0 self-center border border-[#d8b474]/25 bg-[#111b16] p-3 sm:p-4">
-      <div className="flex items-center justify-between gap-3 px-1 pb-3">
-        <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#d8b474]">
-          <span aria-hidden="true" className="text-lg leading-none">♫</span> Arşivin sesi
-        </span>
-        <span className="text-[10px] text-[#b7b3a6]">Kültür &amp; müzik</span>
-      </div>
-      <div ref={playerArea} className="relative aspect-video min-h-[200px] w-full bg-[#080e0b]">
-        {loadPlayer ? (
-          <iframe
-            title="KURDNAME açılış müziği"
-            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&controls=1&rel=0`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            referrerPolicy="strict-origin-when-cross-origin"
-            className="absolute inset-0 h-full w-full border-0"
-          />
-        ) : (
-          <button type="button" onClick={() => setLoadPlayer(true)} className="absolute inset-0 grid h-full w-full place-content-center text-center text-[#d8b474]" aria-label="Müzik oynatıcısını aç">
-            <span className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full border border-[#d8b474]/50 text-xl">▶</span>
-            <span className="text-xs">Müziği aç</span>
-          </button>
-        )}
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-3 text-[11px] leading-5 text-[#b7b3a6]">
-        <span>Otomatik başlamazsa oynat tuşuna dokunun.</span>
-        <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noopener noreferrer" className="text-[#d8b474] hover:underline">YouTube ↗</a>
-      </div>
-    </aside>
-  );
+  return null;
 }
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#0d1511] text-[#eee8db]">
+      <OpeningMusic />
       <header className="border-b border-[#d8b474]/20 bg-[#101914]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4 sm:px-8 lg:px-10">
           <Link href="/" className="flex items-center gap-3" aria-label="KURDNAME ana sayfa">
@@ -95,7 +82,6 @@ export default function Home() {
             {collections.map((collection) => (
               <Link key={collection.href} href={collection.href} className="transition hover:text-[#e3c68f] focus-visible:outline focus-visible:outline-[#d8b474]">{collection.title}</Link>
             ))}
-            <a href="#son-eklenenler" className="transition hover:text-[#e3c68f]">Son eklenenler</a>
           </nav>
         </div>
       </header>
@@ -119,10 +105,9 @@ export default function Home() {
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-4">
               <a href="#koleksiyonlar" className="inline-flex items-center gap-3 bg-[#d8b474] px-5 py-3 text-xs font-semibold text-[#121c15] transition hover:bg-[#efd39c]">Arşivi keşfet <span aria-hidden="true">↓</span></a>
-              <a href="#son-eklenenler" className="border-b border-[#d8b474]/40 py-2 text-xs text-[#e4d5b8] hover:text-white">Yeni kayıtlar →</a>
-            </div>
+              </div>
           </div>
-          <OpeningMusic />
+          <div aria-hidden="true" className="hidden min-h-[300px] self-stretch border border-[#d8b474]/20 bg-cover bg-center lg:block" style={{ backgroundImage: "linear-gradient(135deg, rgba(13,21,17,.1), rgba(13,21,17,.58)), url('/kurdname-bg.png')" }} />
         </div>
       </section>
 
@@ -153,10 +138,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      <div id="son-eklenenler" className="scroll-mt-5 [&>section]:py-12 [&>section>div>div:first-child]:mb-8 [&>section>div>div:first-child]:text-left [&>section>div>div:first-child>div]:ml-0 [&>section>div>div:first-child>h2]:mt-3">
-        <LatestArchiveRecords />
-      </div>
 
       <footer className="border-t border-[#d8b474]/20 bg-[#101914]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-7 sm:px-8 lg:px-10">
