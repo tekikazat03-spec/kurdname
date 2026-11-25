@@ -5,284 +5,170 @@ import Link from "next/link";
 import LatestArchiveRecords from "@/components/LatestArchiveRecords";
 import ArchiveSearch from "@/components/ArchiveSearch";
 
-const categories = [
-  {
-    number: "01",
-    title: "Şahsiyetler",
-    subtitle: "Tarihe iz bırakan insanlar",
-    description:
-      "Kürdistan tarihindeki şahsiyetlerin yaşamları, eserleri ve faaliyetleri.",
-    href: "/kisiler",
-    symbol: "✦",
-  },
-  {
-    number: "02",
-    title: "Örgütler",
-    subtitle: "Tarihsel oluşumlar",
-    description:
-      "Kürdistan tarihinde faaliyet göstermiş örgütler, cemiyetler ve kuruluşlar.",
-    href: "/orgutler",
-    symbol: "◈",
-  },
-  {
-    number: "03",
-    title: "Partiler",
-    subtitle: "Siyasi tarih",
-    description:
-      "Kürdistan siyasi tarihinde yer alan partiler, kuruluş süreçleri ve faaliyetleri.",
-    href: "/partiler",
-    symbol: "❖",
-  },
+const collections = [
+  { number: "01", title: "Şahsiyetler", subtitle: "İnsanlar ve yaşam öyküleri", description: "Yazarlar, sanatçılar, düşünürler ve tarihsel şahsiyetler.", href: "/kisiler", symbol: "✦" },
+  { number: "02", title: "Örgütler", subtitle: "Cemiyetler ve tarihsel oluşumlar", description: "Kuruluş süreçleri, faaliyetler ve tarihsel bağlam.", href: "/orgutler", symbol: "◈" },
+  { number: "03", title: "Partiler", subtitle: "Siyasi tarih", description: "Siyasi hareketler, partiler ve tarihsel gelişmeler.", href: "/partiler", symbol: "❖" },
 ];
 
-function KurdistanSun() {
+const videoId = "rC4n6H7AkpY";
+
+function SunMark() {
   return (
-    <svg
-      viewBox="0 0 200 200"
-      className="h-28 w-28 text-[#c9a66b] sm:h-36 sm:w-36"
-      role="img"
-      aria-label="21 ışınlı güneş"
-    >
-      {Array.from({ length: 21 }, (_, index) => (
-        <line
-          key={index}
-          x1="100"
-          y1="13"
-          x2="100"
-          y2="43"
-          stroke="currentColor"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          transform={`rotate(${(index * 360) / 21} 100 100)`}
-        />
+    <svg viewBox="0 0 64 64" className="h-11 w-11 shrink-0 text-[#d8b474]" aria-hidden="true">
+      {Array.from({ length: 21 }, (_, i) => (
+        <line key={i} x1="32" y1="3" x2="32" y2="15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" transform={`rotate(${i * 360 / 21} 32 32)`} />
       ))}
-      <circle cx="100" cy="100" r="43" fill="currentColor" />
-      <circle cx="100" cy="100" r="33" fill="#e0bf80" opacity="0.45" />
+      <circle cx="32" cy="32" r="13" fill="currentColor" />
     </svg>
   );
 }
 
-export default function Home() {
-  const [archiveOpen, setArchiveOpen] = useState(false);
-  const archiveRef = useRef<HTMLElement>(null);
-
-  const restorePosition = useRef<number | null>(null);
+function OpeningMusic() {
+  const playerArea = useRef<HTMLDivElement>(null);
+  const [loadPlayer, setLoadPlayer] = useState(false);
 
   useEffect(() => {
-    const savedOpen =
-      sessionStorage.getItem("kurdname-archive-open") === "1";
-
-    if (savedOpen) {
-      const savedY = Number(
-        sessionStorage.getItem("kurdname-home-scroll") || "0"
-      );
-
-      restorePosition.current = Number.isFinite(savedY)
-        ? savedY
-        : 0;
-
-      setArchiveOpen(true);
+    const element = playerArea.current;
+    if (!element) return;
+    if (!("IntersectionObserver" in window)) {
+      setLoadPlayer(true);
+      return;
     }
-
-    function rememberScroll() {
-      sessionStorage.setItem(
-        "kurdname-home-scroll",
-        String(window.scrollY)
-      );
-    }
-
-    window.addEventListener("scroll", rememberScroll, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener("scroll", rememberScroll);
-    };
+    // YouTube permits automatic playback only when the player is sufficiently visible.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry && entry.intersectionRatio >= 0.5) {
+        setLoadPlayer(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!archiveOpen || restorePosition.current === null) return;
-
-    const position = restorePosition.current;
-    restorePosition.current = null;
-
-    const timer = window.setTimeout(() => {
-      window.scrollTo({
-        top: position,
-        behavior: "instant",
-      });
-    }, 200);
-
-    return () => window.clearTimeout(timer);
-  }, [archiveOpen]);
-
-  // kurdname-restore-scroll
-
-  function exploreArchive() {
-    sessionStorage.setItem("kurdname-archive-open", "1");
-    setArchiveOpen(true);
-
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        archiveRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 150);
-    });
-  }
-
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#0b0d0b] text-[#e8e1d3]">
-      {/* ANA EKRAN */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20 text-center">
-        {/* Tarihî arka plan */}
-        <div
-          className="absolute inset-0 scale-105 bg-cover bg-center opacity-40"
-          style={{
-            backgroundImage: "url('/kurdname-bg.png')",
-          }}
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0d0b]/60 via-[#0b0d0b]/75 to-[#0b0d0b]" />
-
-        {/* Dekoratif çerçeve */}
-        <div className="pointer-events-none absolute inset-5 border border-[#c9a66b]/15 sm:inset-10" />
-
-        <div className="relative z-10 flex w-full max-w-5xl flex-col items-center">
-          <p className="mb-10 text-[10px] uppercase tracking-[0.55em] text-[#c9a66b] sm:text-xs">
-            DİJİTAL TARİH ARŞİVİ
-          </p>
-
-          <KurdistanSun />
-
-          <div className="my-9 h-px w-24 bg-[#c9a66b]/60" />
-
-          <h1 className="text-5xl font-semibold tracking-[0.13em] sm:text-7xl lg:text-8xl">
-            KURDNAME
-          </h1>
-
-          <p className="mt-5 text-xs uppercase tracking-[0.32em] text-[#c9a66b] sm:text-sm">
-            Kürdistan'ın Dijital Arşivi
-          </p>
-
-          <p className="mt-12 max-w-2xl font-serif text-xl leading-relaxed text-[#d4cbbd] sm:text-3xl">
-            Bir milletin hafızası, geçmişinde saklıdır.
-          </p>
-
-          <p className="mt-5 max-w-xl text-sm leading-7 text-[#aaa397]">
-            Tarihin izlerini, şahsiyetlerini ve belgelerini gelecek
-            nesillere taşıyan bağımsız dijital arşiv.
-          </p>
-
-          <ArchiveSearch />
-
-          <button
-            type="button"
-            onClick={exploreArchive}
-            className="group mt-12 flex items-center gap-7 border border-[#c9a66b]/70 bg-[#c9a66b]/10 px-9 py-5 text-xs font-medium uppercase tracking-[0.22em] text-[#e0bf80] transition-all duration-300 hover:border-[#c9a66b] hover:bg-[#c9a66b] hover:text-[#0b0d0b]"
-          >
-            ARŞİVİ KEŞFET
-            <span className="text-lg transition-transform group-hover:translate-y-1">
-              ↓
-            </span>
+    <aside className="relative min-w-0 self-center border border-[#d8b474]/25 bg-[#111b16] p-3 sm:p-4">
+      <div className="flex items-center justify-between gap-3 px-1 pb-3">
+        <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#d8b474]">
+          <span aria-hidden="true" className="text-lg leading-none">♫</span> Arşivin sesi
+        </span>
+        <span className="text-[10px] text-[#b7b3a6]">Kültür &amp; müzik</span>
+      </div>
+      <div ref={playerArea} className="relative aspect-video min-h-[200px] w-full bg-[#080e0b]">
+        {loadPlayer ? (
+          <iframe
+            title="KURDNAME açılış müziği"
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&controls=1&rel=0`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            className="absolute inset-0 h-full w-full border-0"
+          />
+        ) : (
+          <button type="button" onClick={() => setLoadPlayer(true)} className="absolute inset-0 grid h-full w-full place-content-center text-center text-[#d8b474]" aria-label="Müzik oynatıcısını aç">
+            <span className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full border border-[#d8b474]/50 text-xl">▶</span>
+            <span className="text-xs">Müziği aç</span>
           </button>
-        </div>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-3 text-[11px] leading-5 text-[#b7b3a6]">
+        <span>Otomatik başlamazsa oynat tuşuna dokunun.</span>
+        <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noopener noreferrer" className="text-[#d8b474] hover:underline">YouTube ↗</a>
+      </div>
+    </aside>
+  );
+}
 
-        <div className="absolute bottom-12 text-[10px] uppercase tracking-[0.35em] text-[#aaa397]/60">
-          TARİH · HAFIZA · KİMLİK
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-[#0d1511] text-[#eee8db]">
+      <header className="border-b border-[#d8b474]/20 bg-[#101914]">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4 sm:px-8 lg:px-10">
+          <Link href="/" className="flex items-center gap-3" aria-label="KURDNAME ana sayfa">
+            <SunMark />
+            <div>
+              <p className="font-serif text-2xl font-bold tracking-[0.12em] text-[#f3e8d1]">KURDNAME</p>
+              <p className="mt-0.5 text-[9px] uppercase tracking-[0.18em] text-[#d8b474]">Dijital tarih arşivi</p>
+            </div>
+          </Link>
+          <nav aria-label="Ana menü" className="flex w-full flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#d8b474]/10 pt-3 text-xs font-medium text-[#d0c8b8] sm:w-auto sm:gap-x-6 sm:border-0 sm:pt-0 sm:text-sm">
+            {collections.map((collection) => (
+              <Link key={collection.href} href={collection.href} className="transition hover:text-[#e3c68f] focus-visible:outline focus-visible:outline-[#d8b474]">{collection.title}</Link>
+            ))}
+            <a href="#son-eklenenler" className="transition hover:text-[#e3c68f]">Son eklenenler</a>
+          </nav>
+        </div>
+      </header>
+
+      <section className="relative isolate border-b border-[#d8b474]/20">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center opacity-[0.16]" style={{ backgroundImage: "url('/kurdname-bg.png')" }} />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-[#0d1511]/95 via-[#0d1511]/65 to-[#0d1511]/85" />
+        <div className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 sm:py-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:px-10 lg:py-16">
+          <div className="min-w-0">
+            <p className="mb-4 flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.24em] text-[#d8b474]">
+              <span className="h-px w-8 bg-[#d8b474]" /> Tarih · Kültür · Hafıza
+            </p>
+            <h1 className="max-w-2xl font-serif text-[clamp(2.35rem,5vw,4.9rem)] leading-[1.06] tracking-[-0.035em] text-[#f4ead8]">
+              Kürdistan’ın <span className="text-[#d8b474]">dijital arşivi.</span>
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-[#c6c1b3] sm:text-base">
+              Kürt tarihini, edebiyatını, kültürünü ve toplumsal hafızasını kaynaklı kayıtlarla keşfedin.
+            </p>
+            <div className="relative z-20 [&>div]:mt-5">
+              <ArchiveSearch />
+            </div>
+            <div className="mt-5 flex flex-wrap items-center gap-4">
+              <a href="#koleksiyonlar" className="inline-flex items-center gap-3 bg-[#d8b474] px-5 py-3 text-xs font-semibold text-[#121c15] transition hover:bg-[#efd39c]">Arşivi keşfet <span aria-hidden="true">↓</span></a>
+              <a href="#son-eklenenler" className="border-b border-[#d8b474]/40 py-2 text-xs text-[#e4d5b8] hover:text-white">Yeni kayıtlar →</a>
+            </div>
+          </div>
+          <OpeningMusic />
         </div>
       </section>
 
-      {/* ARŞİV KATEGORİLERİ */}
-      {archiveOpen && (
-        <section
-          ref={archiveRef}
-          id="archive"
-          className="relative mx-auto min-h-screen max-w-7xl scroll-mt-0 px-6 py-24 sm:py-32"
-        >
-          <div className="mb-16 text-center">
-            <p className="text-xs uppercase tracking-[0.45em] text-[#c9a66b]">
-              KURDNAME
-            </p>
-
-            <h2 className="mt-6 font-serif text-4xl sm:text-6xl">
-              Dijital Arşiv
-            </h2>
-
-            <div className="mx-auto my-8 h-px w-20 bg-[#c9a66b]/50" />
-
-            <p className="text-sm text-[#aaa397]">
-              Tarihin kapılarını aralayın.
-            </p>
+      <section id="koleksiyonlar" className="mx-auto max-w-7xl scroll-mt-6 px-5 py-9 sm:px-8 sm:py-12 lg:px-10">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#d8b474]/20 pb-4">
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.25em] text-[#d8b474]">Arşiv / Koleksiyonlar</p>
+            <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">Tarihi keşfedin</h2>
           </div>
+          <p className="text-xs text-[#b7b3a6]">03 koleksiyon</p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {collections.map((collection) => (
+            <Link key={collection.href} href={collection.href} className="group relative flex min-h-[190px] flex-col justify-between border border-[#d8b474]/20 bg-[#17231b] p-5 transition duration-200 hover:border-[#d8b474]/75 hover:bg-[#1d2c22] focus-visible:outline focus-visible:outline-[#d8b474] sm:p-6">
+              <div className="flex items-center justify-between text-[#d8b474]">
+                <span className="text-[10px] tracking-[0.18em]">{collection.number} / KOLEKSİYON</span>
+                <span aria-hidden="true" className="text-2xl">{collection.symbol}</span>
+              </div>
+              <div className="my-4">
+                <h3 className="font-serif text-3xl text-[#f3e8d1]">{collection.title}</h3>
+                <p className="mt-2 text-xs leading-6 text-[#b7b3a6]">{collection.description}</p>
+              </div>
+              <div className="flex items-center justify-between border-t border-[#d8b474]/15 pt-3 text-xs text-[#d8b474]">
+                <span>{collection.subtitle}</span>
+                <span aria-hidden="true" className="text-xl transition-transform group-hover:translate-x-1">↗</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {categories.map((category) => (
-              <Link
-                key={category.href}
-                href={category.href}
-                className="group relative flex min-h-[420px] flex-col justify-between overflow-hidden border border-[#c9a66b]/20 bg-gradient-to-br from-[#19251d] to-[#0d120e] p-9 transition-all duration-500 hover:-translate-y-2 hover:border-[#c9a66b]/70"
-              >
-                <div className="pointer-events-none absolute -right-10 top-12 font-serif text-[180px] leading-none text-[#c9a66b]/5">
-                  {category.symbol}
-                </div>
+      <div id="son-eklenenler" className="scroll-mt-5 [&>section]:py-12 [&>section>div>div:first-child]:mb-8 [&>section>div>div:first-child]:text-left [&>section>div>div:first-child>div]:ml-0 [&>section>div>div:first-child>h2]:mt-3">
+        <LatestArchiveRecords />
+      </div>
 
-                <div className="relative">
-                  <span className="text-xs tracking-[0.3em] text-[#c9a66b]">
-                    {category.number} / ARŞİV
-                  </span>
-                </div>
-
-                <div className="relative">
-                  <div className="mb-7 text-5xl text-[#c9a66b]/70">
-                    {category.symbol}
-                  </div>
-
-                  <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[#c9a66b]/70">
-                    {category.subtitle}
-                  </p>
-
-                  <h3 className="font-serif text-4xl">
-                    {category.title}
-                  </h3>
-
-                  <p className="mt-6 max-w-xs text-sm leading-7 text-[#aaa397]">
-                    {category.description}
-                  </p>
-                </div>
-
-                <div className="relative flex items-center justify-between border-t border-[#c9a66b]/15 pt-6">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#c9a66b]">
-                    ARŞİVİ AÇ
-                  </span>
-
-                  <span className="text-2xl text-[#c9a66b] transition-transform group-hover:translate-x-2">
-                    →
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-20 text-center">
-            <p className="text-xs tracking-[0.2em] text-[#aaa397]/50">
-              GEÇMİŞTEN GELECEĞE BİR HAFIZA
-            </p>
-          </div>
-        </section>
-      )}
-
-      <LatestArchiveRecords />
-
-      {/* ALT BİLGİ */}
-      <footer className="border-t border-[#c9a66b]/10 px-6 py-9 text-center">
-        <p className="text-xs tracking-[0.2em] text-[#aaa397]/50">
-          © {new Date().getFullYear()} KURDNAME
-        </p>
-        <p className="mt-3 text-[10px] text-[#aaa397]/40">
-          Kürdistan'ın Dijital Arşivi
-        </p>
+      <footer className="border-t border-[#d8b474]/20 bg-[#101914]">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-7 sm:px-8 lg:px-10">
+          <Link href="/" className="flex items-center gap-2">
+            <SunMark />
+            <div>
+              <p className="font-serif text-lg tracking-[0.15em] text-[#f3e8d1]">KURDNAME</p>
+              <p className="mt-1 text-[11px] text-[#b7b3a6]">Kürdistan’ın dijital tarih arşivi</p>
+            </div>
+          </Link>
+          <p className="text-xs text-[#b7b3a6]">© {new Date().getFullYear()} KURDNAME</p>
+        </div>
       </footer>
     </main>
   );
