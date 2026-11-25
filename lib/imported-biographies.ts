@@ -27,6 +27,12 @@ export type ImportedPerson = {
   legacyBiographyHash: string;
 };
 
+export const archiveEdition = "2026-11-25";
+const editionSlugs = new Set(["nuri-dersimi", "memduh-selim-bey", "remzi-nafi", "seydaye-tirej", "dr-sivan", "sakiro", "firike-usiv", "wekil-mustafayev"]);
+export function isCurrentArchiveEdition(slug: string): boolean {
+  return editionSlugs.has(slug);
+}
+
 export const importedPeople: ImportedPerson[] = [...records, mehmedUzun, celadetBedirxan, eliserKocgiri, leylaBedirxan] as ImportedPerson[];
 
 
@@ -77,6 +83,15 @@ export function findImportedPerson(slugOrName: string): ImportedPerson | null {
 
 export function mergeImportedPeople<T extends { id: string; slug: string; name: string }>(remote: T[]): T[] {
   const result = [...remote];
+  for (const record of importedPeople.filter((item) => isCurrentArchiveEdition(item.slug))) {
+    const index = result.findIndex((entry) => matches(entry, record));
+    if (index >= 0) {
+      const entry = result[index] as T & { archiveEdition?: string };
+      if (entry.archiveEdition !== archiveEdition) {
+        result[index] = { ...entry, name: record.name, shortBio: record.shortBio } as T;
+      }
+    }
+  }
   for (const person of importedPeople) {
     if (!result.some((entry) => matches(entry, person))) {
       result.push(person as unknown as T);
@@ -94,11 +109,23 @@ export function mergeImportedPerson<T extends {
   sources?: string[];
 }>(remote: T | null, requestedSlug: string): T | null {
   const imported = importedPeople.find((person) =>
-    normalizeName(person.slug) === normalizeName(requestedSlug) ||
+    [person.slug, person.name, ...person.aliases].some((value) => normalizeName(value) === normalizeName(requestedSlug)) ||
     (remote !== null && matches(remote, person))
   );
   if (!imported) return remote;
   if (!remote) return imported as unknown as T;
+  if (isCurrentArchiveEdition(imported.slug) && (remote as T & { archiveEdition?: string }).archiveEdition !== archiveEdition) {
+    return {
+      ...remote,
+      name: imported.name,
+      birth: imported.birth,
+      death: imported.death,
+      shortBio: imported.shortBio,
+      biography: imported.biography,
+      sources: imported.sources,
+      tags: imported.tags,
+    } as T;
+  }
   const legacyBiography = containsOriginalUnstructuredText(remote, imported);
   const existingBiography = !legacyBiography && Array.isArray(remote.biography) &&
     remote.biography.some((section) => typeof section.content === "string" && section.content.trim().length > 0);
