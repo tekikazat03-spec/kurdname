@@ -7,7 +7,7 @@ import { get, push, ref, set, update } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
 import { ADMIN_UID } from "@/lib/admin";
 import { importedPeople } from "@/lib/imported-biographies";
-import { findImportedPerson } from "@/lib/imported-biographies";
+import { findImportedPerson, mergeImportedPerson, archiveEdition, isCurrentArchiveEdition } from "@/lib/imported-biographies";
 
 type BiographySection = {
   title: string;
@@ -94,6 +94,9 @@ export default function EditPersonPage() {
           };
         }
 
+        if (imported && isCurrentArchiveEdition(imported.slug)) {
+          data = mergeImportedPerson(data, imported.slug) || data;
+        }
         setName(data.name || "");
         setBirth(data.birth || "");
         setDeath(data.death || "");
@@ -269,7 +272,9 @@ export default function EditPersonPage() {
         ? importedPeople.find((person) => person.id === id)
         : undefined;
 
+      const editionRecord = importedSource || findImportedPerson(name);
       const payload = {
+        ...(editionRecord && isCurrentArchiveEdition(editionRecord.slug) ? { archiveEdition } : {}),
         name: name.trim(),
         slug: importedSource && name.trim() === importedSource.name
           ? importedSource.slug
