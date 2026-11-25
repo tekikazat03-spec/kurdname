@@ -36,6 +36,7 @@ export async function generateMetadata({
 }
 import Link from "next/link";
 import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
+import PersonRecordings from "@/components/PersonRecordings";
 import RelatedArchiveRecords from "@/components/RelatedArchiveRecords";
 import ArchiveSource from "@/components/ArchiveSource";
 
@@ -263,6 +264,8 @@ export default async function PersonPage({
           </a>
         </section>
       )}
+
+      <PersonRecordings slug={findImportedPerson(person.slug)?.slug || findImportedPerson(person.name)?.slug || person.slug} />
 
       <RelatedArchiveRecords personName={person.name} />
 
