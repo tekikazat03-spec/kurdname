@@ -38,6 +38,7 @@ import Link from "next/link";
 import ArchiveMediaGallery from "@/components/ArchiveMediaGallery";
 import RelatedArchiveRecords from "@/components/RelatedArchiveRecords";
 import ArchiveSource from "@/components/ArchiveSource";
+import SakiroRecordings from "@/components/SakiroRecordings";
 
 type BiographySection = {
   title?: string;
@@ -122,6 +123,8 @@ export default async function PersonPage({
     );
   }
 
+  const isSakiro = /(?:^|[^a-z])(?:sakiro|sakir-deniz)(?:$|[^a-z])/i.test(`${person.slug} ${person.name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+  const hasTrackSection = person.biography?.some((section) => /başlıca\s+(?:kılam|kilam|eser)/i.test(section.title || ""));
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-[#e8e3d8]">
       {/* HEADER */}
@@ -231,6 +234,7 @@ export default async function PersonPage({
                     {section.content}
                   </div>
                 )}
+                {isSakiro && /başlıca\s+(?:kılam|kilam|eser)/i.test(section.title || "") && <SakiroRecordings />}
               </article>
             ))}
           </div>
@@ -240,6 +244,13 @@ export default async function PersonPage({
           </p>
         )}
       </section>
+
+      {isSakiro && !hasTrackSection && (
+        <section className="mx-auto max-w-5xl px-6 pb-16 lg:px-10">
+          <h2 className="text-2xl font-light text-white">Başlıca kılamları</h2>
+          <SakiroRecordings />
+        </section>
+      )}
 
       {person.slug === "celadet-ali-bedirxan" && (
         <section className="mx-auto max-w-5xl px-6 pb-16 lg:px-10">
