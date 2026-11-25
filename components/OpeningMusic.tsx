@@ -4,9 +4,11 @@ import { useEffect } from "react";
 
 type MusicWindow = Window & { __kurdnameOpeningAudio?: HTMLAudioElement };
 
-const key = "kurdname-opening-music-v3";
+const key = "kurdname-opening-music-v4";
 const positionKey = key + "-position";
-const limit = 15;
+const limit = 9.4;
+const baseVolume = 0.75;
+const fadeStart = 8.7;
 
 function read(key: string) {
   try { return sessionStorage.getItem(key); } catch { return null; }
@@ -23,7 +25,7 @@ function startOpeningMusic() {
   const audio = new Audio("/opening-music.mp3");
   host.__kurdnameOpeningAudio = audio;
   audio.preload = "auto";
-  audio.volume = 0.75;
+  audio.volume = baseVolume;
   audio.loop = false;
 
   let finished = false;
@@ -58,7 +60,7 @@ function startOpeningMusic() {
     if (finished) return;
     finished = true;
     write(key, "1");
-    write(positionKey, "15");
+    write(positionKey, String(limit));
     audio.pause();
     removeGestures();
     window.removeEventListener("pagehide", save);
@@ -72,7 +74,12 @@ function startOpeningMusic() {
 
   function tick() {
     if (audio.currentTime >= limit) complete();
-    else save();
+    else {
+      if (audio.currentTime >= fadeStart) {
+        audio.volume = baseVolume * Math.max(0, (limit - audio.currentTime) / (limit - fadeStart));
+      }
+      save();
+    }
   }
 
   function onPlaying() {
