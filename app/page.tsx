@@ -23,40 +23,54 @@ function SunMark() {
 
 function OpeningMusic() {
   useEffect(() => {
-    // Use an independently licensed audio file, not a hidden YouTube player.
-    const source = process.env.NEXT_PUBLIC_OPENING_AUDIO_URL;
-    if (!source) return;
-    const audio = new Audio(source);
+    const storageKey = "kurdname-opening-music-played";
+    try {
+      if (sessionStorage.getItem(storageKey) === "1") return;
+    } catch {}
+    const audio = new Audio(process.env.NEXT_PUBLIC_OPENING_AUDIO_URL || "/opening-music.mp3");
     audio.volume = 0.55;
     audio.loop = false;
     let timer: number | undefined;
     let finished = false;
 
-    const stop = () => {
+    function removeGestureListeners() {
+      window.removeEventListener("click", attemptPlayback);
+      window.removeEventListener("keydown", attemptPlayback);
+    }
+    function stop() {
       finished = true;
       audio.pause();
+      removeGestureListeners();
       if (timer !== undefined) window.clearTimeout(timer);
-    };
-    const onPlaying = () => {
+    }
+    function attemptPlayback() {
+      if (!finished) void audio.play().catch(() => {});
+    }
+    function onPlaying() {
       if (finished) {
         audio.pause();
         return;
       }
+      removeGestureListeners();
+      try { sessionStorage.setItem(storageKey, "1"); } catch {}
       if (timer === undefined) timer = window.setTimeout(stop, 15000);
-    };
-    const onTimeUpdate = () => {
+    }
+    function onTimeUpdate() {
       if (audio.currentTime >= 15) stop();
-    };
+    }
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("ended", stop);
-    // If audible autoplay is blocked, leave the page silent.
-    void audio.play().catch(() => {});
+    audio.addEventListener("error", stop);
+    window.addEventListener("click", attemptPlayback);
+    window.addEventListener("keydown", attemptPlayback);
+    attemptPlayback();
     return () => {
       stop();
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("ended", stop);
+      audio.removeEventListener("error", stop);
       audio.removeAttribute("src");
       audio.load();
     };
