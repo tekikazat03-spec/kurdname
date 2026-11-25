@@ -7,7 +7,7 @@ const album = "4W3yBZGNlBg";
 const track = (title: string, start: number, end?: number): Recording => ({ title, videoId: album, start, end, credit: "SesMedia — Gulê Dêran albümü" });
 const recordings: Record<string, Recording[]> = {
   "seydaye-tirej": [{ title: "Ey Welat — şiir", videoId: "ksKz6Dn_IOM", credit: "KURDNAME editörü tarafından seçilen video" }],
-  "nuri-dersimi": [{ title: "Kürt Gençliğine Hitabe — seslendirme", videoId: "rxXXzAY4_Yo", credit: "YouTube'da yayımlanan seslendirme; özgün ses olduğu doğrulanmamıştır." }],
+  "nuri-dersimi": [{ title: "Kürt Gençliğine Hitabe — seslendirme", videoId: "3DL9TebAszo", credit: "YouTube'da yayımlanan seslendirme; özgün ses olduğu doğrulanmamıştır." }],
   "sakiro": [
     { title: "Kekê Xiyasedîn", videoId: "CziZhtmpTW4", credit: "Ses Media" },
     track("Gulê Dêran", 0, 425),
