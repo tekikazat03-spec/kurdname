@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import ArchiveSearch from "@/components/ArchiveSearch";
 
@@ -21,68 +20,9 @@ function SunMark() {
   );
 }
 
-function OpeningMusic() {
-  useEffect(() => {
-    const storageKey = "kurdname-opening-music-played";
-    try {
-      if (sessionStorage.getItem(storageKey) === "1") return;
-    } catch {}
-    const audio = new Audio(process.env.NEXT_PUBLIC_OPENING_AUDIO_URL || "/opening-music.mp3");
-    audio.volume = 0.55;
-    audio.loop = false;
-    let timer: number | undefined;
-    let finished = false;
-
-    function removeGestureListeners() {
-      window.removeEventListener("click", attemptPlayback);
-      window.removeEventListener("keydown", attemptPlayback);
-    }
-    function stop() {
-      finished = true;
-      audio.pause();
-      removeGestureListeners();
-      if (timer !== undefined) window.clearTimeout(timer);
-    }
-    function attemptPlayback() {
-      if (!finished) void audio.play().catch(() => {});
-    }
-    function onPlaying() {
-      if (finished) {
-        audio.pause();
-        return;
-      }
-      removeGestureListeners();
-      try { sessionStorage.setItem(storageKey, "1"); } catch {}
-      if (timer === undefined) timer = window.setTimeout(stop, 15000);
-    }
-    function onTimeUpdate() {
-      if (audio.currentTime >= 15) stop();
-    }
-    audio.addEventListener("playing", onPlaying);
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("ended", stop);
-    audio.addEventListener("error", stop);
-    window.addEventListener("click", attemptPlayback);
-    window.addEventListener("keydown", attemptPlayback);
-    attemptPlayback();
-    return () => {
-      stop();
-      audio.removeEventListener("playing", onPlaying);
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("ended", stop);
-      audio.removeEventListener("error", stop);
-      audio.removeAttribute("src");
-      audio.load();
-    };
-  }, []);
-
-  return null;
-}
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#0d1511] text-[#eee8db]">
-      <OpeningMusic />
       <header className="border-b border-[#d8b474]/20 bg-[#101914]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4 sm:px-8 lg:px-10">
           <Link href="/" className="flex items-center gap-3" aria-label="KURDNAME ana sayfa">
